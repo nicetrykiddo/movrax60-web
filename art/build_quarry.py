@@ -268,6 +268,19 @@ except TypeError:
 for prop,val in [('sun_elevation',math.radians(36)),('sun_rotation',math.radians(156)),('altitude',175),('air_density',1.1),('dust_density',.67),('ozone_density',1.05),('sun_disc',False)]:
     if hasattr(sky,prop): setattr(sky,prop,val)
 bg=ns.get("Background"); lk.new(sky.outputs["Color"],bg.inputs["Color"]); bg.inputs["Strength"].default_value=.10
+# The far quarry is projected through the camera window for the orthographic shot.
+coords=ns.new("ShaderNodeTexCoord")
+framing=ns.new("ShaderNodeVectorMath"); framing.operation="MULTIPLY_ADD"
+framing.inputs[1].default_value=(.44,.31,1)
+framing.inputs[2].default_value=(.50,.29,0)
+lk.new(coords.outputs["Window"],framing.inputs[0])
+distant=ns.new("ShaderNodeTexImage")
+distant.image=bpy.data.images.load(str(ROOT/"art"/"materials"/"distant-horizon.jpg"))
+lk.new(framing.outputs[0],distant.inputs["Vector"])
+backdrop=ns.new("ShaderNodeBackground"); lk.new(distant.outputs["Color"],backdrop.inputs["Color"])
+rays=ns.new("ShaderNodeLightPath"); mix=ns.new("ShaderNodeMixShader")
+lk.new(rays.outputs["Is Camera Ray"],mix.inputs[0]);lk.new(bg.outputs[0],mix.inputs[1]);lk.new(backdrop.outputs[0],mix.inputs[2])
+lk.new(mix.outputs[0],ns.get("World Output").inputs["Surface"])
 sun=bpy.data.lights.new("Warm direct sun","SUN"); sun.energy=3.8; sun.angle=math.radians(2.1); sun.color=(1,.78,.56)
 so=bpy.data.objects.new("Sun · northwest",sun); stage.objects.link(so); so.rotation_euler=Vector((.87,.32,-.41)).to_track_quat("-Z","Y").to_euler()
 
@@ -289,6 +302,7 @@ scene.render.resolution_x=views[0][1]; scene.render.resolution_y=views[0][2]
 scene.render.filepath="//../public/quarry.webp"
 if os.getenv("QUARRY_PREVIEW") is None:
     bpy.context.preferences.filepaths.save_version=0
+    bpy.ops.file.pack_all()
     bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/"art"/"weather-quarry.blend"),compress=True)
 for cam,view in zip(cameras,views):
     name,w,h,extent,origin,target,stem=view
