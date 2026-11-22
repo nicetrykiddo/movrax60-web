@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('publishes a single sourced highlight and the roster without scripts',async({browser})=>{
   const page=await browser.newPage({javaScriptEnabled:false,viewport:{width:320,height:780}});
   await page.goto('/');
-  await expect(page.getByRole('heading',{name:'MOVRAX60'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'movrax60'})).toBeVisible();
   await expect(page.locator('.result-line strong')).toHaveText('#10');
   await expect(page.getByRole('table')).toHaveCount(0);
   await expect(page.getByRole('link',{name:'Official result'})).toHaveAttribute('href',/ctftime.org\/event\//);

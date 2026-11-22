@@ -1,4 +1,4 @@
-# MOVRAX60
+# movrax60
 
 Scroll through the team introduction, featured competition and public roster. The CTFtime link leads to complete standings. Content is built into the HTML from records.json.
 
