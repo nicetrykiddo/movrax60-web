@@ -21,6 +21,7 @@ function choose(title: string, place: number) {
   const suffix = place % 100 >= 11 && place % 100 <= 13 ? 'th' : endings[place % 10] ?? 'th';
   find('#mark-rank').textContent = String(place);
   find('#mark-name').textContent = title;
+  find('#phone-result').textContent = title;
   find('#engraving').textContent = title;
   find('#rank').textContent = place + suffix + ' place';
   if (Number(range.value) === 0) {
@@ -31,7 +32,7 @@ function choose(title: string, place: number) {
 }
 
 let requestedRecord: string | undefined;
-find('.inscription').addEventListener('click', () => {
+for (const link of document.querySelectorAll('.inscription, .phone-feature')) link.addEventListener('click', () => {
   requestedRecord = find('#engraving').textContent ?? undefined;
 });
 
