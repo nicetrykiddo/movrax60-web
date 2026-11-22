@@ -1,4 +1,5 @@
 import './style.css';
+import records from './records.json';
 import { initWeather } from './weather';
 import { renderArchive, renderTeam } from './archive';
 
@@ -22,7 +23,7 @@ function choose(title: string, place: number) {
   find('#mark-name').textContent = title;
   find('#engraving').textContent = title;
   find('#rank').textContent = place + suffix + ' place';
-  if (range.valueAsNumber === 0) {
+  if (Number(range.value) === 0) {
     range.value = '65';
     range.dispatchEvent(new Event('input', { bubbles: true }));
   }
@@ -33,6 +34,20 @@ let requestedRecord: string | undefined;
 find('.inscription').addEventListener('click', () => {
   requestedRecord = find('#engraving').textContent ?? undefined;
 });
+
+for (const event of [...records.events].sort((a,b)=>a.place-b.place).slice(0,3)) {
+  const link=document.createElement('a');
+  link.href='#results';
+  const rank=document.createElement('strong');
+  rank.textContent='#'+event.place;
+  const title=document.createElement('span');
+  title.textContent=event.title;
+  const score=document.createElement('small');
+  score.textContent=event.points.toLocaleString('en-GB')+' pts';
+  link.append(rank,title,score);
+  link.addEventListener('click',()=>{requestedRecord=event.title});
+  find('#featured-list').append(link);
+}
 
 function route() {
   const view = ['#results', '#team'].includes(location.hash) ? location.hash : '#quarry';

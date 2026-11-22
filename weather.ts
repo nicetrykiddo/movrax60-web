@@ -437,6 +437,8 @@ export function initWeather(canvas: HTMLCanvasElement, range: HTMLInputElement, 
   canvas.style.touchAction='pan-y';
   const gl=canvas.getContext('webgl',{ alpha:true, antialias:false, depth:false, stencil:false, premultipliedAlpha:true, powerPreference:'low-power' });
   const lower=Number(range.min || 0), upper=Number(range.max || 100);
+  let hoverTarget: number | null = null;
+  let manual = false;
   function readRange() {
     open=Math.max(0,Math.min(1,(Number(range.value)-lower)/Math.max(.0001,upper-lower)));
     audio(open); renderSoon();
@@ -490,6 +492,12 @@ export function initWeather(canvas: HTMLCanvasElement, range: HTMLInputElement, 
       if(elapsed>34 && elapsed<200 && quality>.45) slowFrames++; else slowFrames=Math.max(0,slowFrames-1);
       if(slowFrames>10) { quality=Math.max(.45,quality*.82); slowFrames=0; }
     }
+    if (hoverTarget !== null && !manual && !motion.matches) {
+      open += (hoverTarget-open)*(1-Math.exp(-Math.min(elapsed,100)/140));
+      range.value=String(open*100);
+      audio(open);
+    }
+    canvas.setAttribute('aria-pressed',String(open>.5));
     draw({size,open,time,hands:[...hands.values()],rings,quality});
     if(!motion.matches) renderSoon();
   }
@@ -509,6 +517,7 @@ export function initWeather(canvas: HTMLCanvasElement, range: HTMLInputElement, 
   function down(event: PointerEvent) {
     if(event.button!==0) return;
     const point=pointAt(event), onSlice=hitsSlice(point,size,open);
+    manual=true; hoverTarget=null;
     hands.set(event.pointerId,{...point,strength:1});
     if(!grab && onSlice) {
       grab={id:event.pointerId,start:point,initial:open,moved:false};
@@ -519,6 +528,11 @@ export function initWeather(canvas: HTMLCanvasElement, range: HTMLInputElement, 
   }
   function move(event: PointerEvent) {
     const point=pointAt(event);
+    if(!manual && event.pointerType==='mouse' && !event.buttons) {
+      const x=(point.x-size.anchor*size.width)/size.scale;
+      const y=(point.y-size.height*.73)/size.scale;
+      hoverTarget=Math.min(1,Math.max(0,(x+.52)*1.3))*Math.max(0,Math.min(1,2.5-Math.abs(y+.48)*2));
+    }
     if(grab?.id===event.pointerId) {
       const dx=point.x-grab.start.x, dy=point.y-grab.start.y;
       grab.moved ||= Math.hypot(dx,dy)>4;
@@ -548,7 +562,12 @@ export function initWeather(canvas: HTMLCanvasElement, range: HTMLInputElement, 
   canvas.addEventListener('pointercancel',release);
   canvas.addEventListener('lostpointercapture',release);
   canvas.addEventListener('pointerleave',event=>{ if(!canvas.hasPointerCapture(event.pointerId)) { hands.delete(event.pointerId); renderSoon(); } });
-  range.addEventListener('input',readRange); range.addEventListener('change',readRange);
+  canvas.addEventListener('keydown',event=>{
+    if(![' ', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault(); manual=true; hoverTarget=null;
+    setOpen(event.key==='ArrowLeft'?open-.1:event.key==='ArrowRight'?open+.1:open>.5?0:1);
+  });
+  range.addEventListener('input',()=>{manual=true; hoverTarget=null; readRange()}); range.addEventListener('change',readRange);
   new ResizeObserver(resize).observe(canvas);
   new IntersectionObserver(entries=>{
     visible=entries[0].isIntersecting;
