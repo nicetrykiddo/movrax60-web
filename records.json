@@ -1,0 +1,264 @@
+{
+  "source": "https://ctftime.org/team/421037",
+  "checked": "2026-11-22",
+  "members": [
+    {
+      "handle": "N3thunt3r69",
+      "profile": "https://ctftime.org/user/129391"
+    },
+    {
+      "handle": "PandaGFX",
+      "profile": "https://ctftime.org/user/224064"
+    },
+    {
+      "handle": "lilmkt12",
+      "profile": "https://ctftime.org/user/241112"
+    },
+    {
+      "handle": "clay_cs",
+      "profile": "https://ctftime.org/user/241408"
+    },
+    {
+      "handle": "nicetrykiddo",
+      "profile": "https://ctftime.org/user/247876"
+    },
+    {
+      "handle": "NITROGOD",
+      "profile": "https://ctftime.org/user/251677"
+    },
+    {
+      "handle": "Ch4Ha3In",
+      "profile": "https://ctftime.org/user/251678"
+    },
+    {
+      "handle": "m3ghar",
+      "profile": "https://ctftime.org/user/257742"
+    }
+  ],
+  "events": [
+    {
+      "title": "Crate-CTF 2026",
+      "year": 2026,
+      "place": 139,
+      "points": 1900,
+      "source": "https://ctftime.org/event/3336"
+    },
+    {
+      "title": "h4ckc0n 2026",
+      "year": 2026,
+      "place": 152,
+      "points": 2667,
+      "source": "https://ctftime.org/event/3464"
+    },
+    {
+      "title": "Platypwn 2026",
+      "year": 2026,
+      "place": 46,
+      "points": 5169,
+      "source": "https://ctftime.org/event/3082"
+    },
+    {
+      "title": "CSCTF 2026",
+      "year": 2026,
+      "place": 56,
+      "points": 26281,
+      "source": "https://ctftime.org/event/3333"
+    },
+    {
+      "title": "PINK+ CTF 2026",
+      "year": 2026,
+      "place": 53,
+      "points": 1485,
+      "source": "https://ctftime.org/event/3331"
+    },
+    {
+      "title": "RSTCON 2026 CTF",
+      "year": 2026,
+      "place": 137,
+      "points": 190,
+      "source": "https://ctftime.org/event/3377"
+    },
+    {
+      "title": "HITCON CTF 2026",
+      "year": 2026,
+      "place": 427,
+      "points": 50,
+      "source": "https://ctftime.org/event/3340"
+    },
+    {
+      "title": "DEADFACE CTF 2026",
+      "year": 2026,
+      "place": 252,
+      "points": 3457,
+      "source": "https://ctftime.org/event/3279"
+    },
+    {
+      "title": "Cryovault 2026 Quals",
+      "year": 2026,
+      "place": 283,
+      "points": 650,
+      "source": "https://ctftime.org/event/3441"
+    },
+    {
+      "title": "CSS CTF 2026: Return of Nexus",
+      "year": 2026,
+      "place": 75,
+      "points": 1999,
+      "source": "https://ctftime.org/event/3434"
+    },
+    {
+      "title": "SunshineCTF 2026",
+      "year": 2026,
+      "place": 665,
+      "points": 51,
+      "source": "https://ctftime.org/event/3399"
+    },
+    {
+      "title": "07CTF 2026",
+      "year": 2026,
+      "place": 156,
+      "points": 100,
+      "source": "https://ctftime.org/event/3365"
+    },
+    {
+      "title": "NullOrigin CTF Qualifiers",
+      "year": 2026,
+      "place": 293,
+      "points": 1060,
+      "source": "https://ctftime.org/event/3346"
+    },
+    {
+      "title": "PwnSec CTF 2026",
+      "year": 2026,
+      "place": 213,
+      "points": 504,
+      "source": "https://ctftime.org/event/3159"
+    },
+    {
+      "title": "BrunnerCTF 2026",
+      "year": 2026,
+      "place": 941,
+      "points": 130,
+      "source": "https://ctftime.org/event/3065"
+    },
+    {
+      "title": "scriptCTF 2026",
+      "year": 2026,
+      "place": 29,
+      "points": 7977,
+      "source": "https://ctftime.org/event/3052"
+    },
+    {
+      "title": "BroncoCTF 2026",
+      "year": 2026,
+      "place": 530,
+      "points": 40,
+      "source": "https://ctftime.org/event/3144"
+    },
+    {
+      "title": "V1T CTF 2026",
+      "year": 2026,
+      "place": 232,
+      "points": 667,
+      "source": "https://ctftime.org/event/3249"
+    },
+    {
+      "title": "TraceBash CTF 2026",
+      "year": 2026,
+      "place": 70,
+      "points": 2414,
+      "source": "https://ctftime.org/event/3323"
+    },
+    {
+      "title": "RIFFHACK: Black Market Break-In",
+      "year": 2026,
+      "place": 416,
+      "points": 140,
+      "source": "https://ctftime.org/event/3297"
+    },
+    {
+      "title": "THEM?!CTF 2026",
+      "year": 2026,
+      "place": 479,
+      "points": 159,
+      "source": "https://ctftime.org/event/3209"
+    },
+    {
+      "title": "JerseyCTF VI",
+      "year": 2026,
+      "place": 326,
+      "points": 51,
+      "source": "https://ctftime.org/event/3117"
+    },
+    {
+      "title": "UMassCTF 2026",
+      "year": 2026,
+      "place": 346,
+      "points": 700,
+      "source": "https://ctftime.org/event/2937"
+    },
+    {
+      "title": "DawgCTF 2026",
+      "year": 2026,
+      "place": 337,
+      "points": 1250,
+      "source": "https://ctftime.org/event/3102"
+    },
+    {
+      "title": "RITSEC CTF 2026",
+      "year": 2026,
+      "place": 22,
+      "points": 3176,
+      "source": "https://ctftime.org/event/3096"
+    },
+    {
+      "title": "KalmarCTF 2026",
+      "year": 2026,
+      "place": 44,
+      "points": 1737,
+      "source": "https://ctftime.org/event/2983"
+    },
+    {
+      "title": "Stranger's CTF - Techtrix '26",
+      "year": 2026,
+      "place": 103,
+      "points": 560,
+      "source": "https://ctftime.org/event/3188"
+    },
+    {
+      "title": "0xFUN CTF 2026",
+      "year": 2026,
+      "place": 583,
+      "points": 354,
+      "source": "https://ctftime.org/event/3081"
+    },
+    {
+      "title": "Nullcon Goa HackIM 2026 CTF",
+      "year": 2026,
+      "place": 10,
+      "points": 5262,
+      "source": "https://ctftime.org/event/3066"
+    },
+    {
+      "title": "KnightCTF 2026",
+      "year": 2026,
+      "place": 205,
+      "points": 1200,
+      "source": "https://ctftime.org/event/3053"
+    },
+    {
+      "title": "SWIMMER OSINT CTF",
+      "year": 2026,
+      "place": 290,
+      "points": 1780,
+      "source": "https://ctftime.org/event/2986"
+    },
+    {
+      "title": "CSCTF 2025",
+      "year": 2025,
+      "place": 56,
+      "points": 26281,
+      "source": "https://ctftime.org/event/2980"
+    }
+  ]
+}
