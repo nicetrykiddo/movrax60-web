@@ -22,6 +22,14 @@ metal=bpy.data.materials.new('Brushed palladium');metal.use_nodes=True
 bs=metal.node_tree.nodes.get('Principled BSDF')
 bs.inputs['Metallic'].default_value=.95
 bs.inputs['Roughness'].default_value=.19
+grain=metal.node_tree.nodes.new('ShaderNodeTexNoise')
+grain.inputs['Scale'].default_value=235
+grain.inputs['Detail'].default_value=2
+roughness=metal.node_tree.nodes.new('ShaderNodeMapRange')
+roughness.inputs['To Min'].default_value=.15
+roughness.inputs['To Max'].default_value=.26
+metal.node_tree.links.new(grain.outputs['Fac'],roughness.inputs['Value'])
+metal.node_tree.links.new(roughness.outputs[0],bs.inputs['Roughness'])
 bs.inputs['Base Color'].default_value=(.70,.63,.83,1)
 # A continuous twisted triangular loop with a bevelled rectangular section.
 verts=[];faces=[];steps=300
@@ -50,3 +58,17 @@ bpy.ops.object.camera_add(location=(2,-11,3));cam=bpy.context.object;aim(cam);ca
 scene.render.resolution_x=960;scene.render.resolution_y=960;scene.render.resolution_percentage=100;scene.render.image_settings.file_format='WEBP';scene.render.image_settings.color_mode='RGBA';scene.render.image_settings.quality=93
 scene.render.filepath=str(root/'public'/'fold.webp')
 bpy.ops.render.render(write_still=True)
+
+# The camera moves around the sculpture while the physical studio lights stay fixed.
+frames=root/'public'/'turn'
+frames.mkdir(exist_ok=True)
+scene.render.resolution_x=720
+scene.render.resolution_y=720
+scene.render.image_settings.quality=86
+for frame in range(64):
+    phase=frame/63
+    theta=math.atan2(2,11)+phase*math.radians(112)
+    cam.location=(math.sin(theta)*11.18,-math.cos(theta)*11.18,3+2.4*math.sin(phase*math.pi))
+    aim(cam)
+    scene.render.filepath=str(frames/f'{frame:02}.webp')
+    bpy.ops.render.render(write_still=True)
