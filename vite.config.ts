@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import records from './records.json';
+import records from './records.json' with { type: 'json' };
 
 const escape = (value: string) => value.replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]!));
 const sorted = [...records.events].sort((a,b) => a.place-b.place);
