@@ -21,7 +21,7 @@ test('range state survives navigation and selecting a result updates the stone',
 });
 
 test('mobile deep link and reduced-motion software renderer', async ({page}) => {
-  await page.setViewportSize({width:360,height:780});
+  await page.setViewportSize({width:320,height:780});
   await page.emulateMedia({ reducedMotion:'reduce' });
   await page.addInitScript(() => {
     const get = HTMLCanvasElement.prototype.getContext;
@@ -33,7 +33,8 @@ test('mobile deep link and reduced-motion software renderer', async ({page}) => 
   await expect(page.locator('.roster-item')).toHaveCount(8);
   await page.getByRole('link',{name:'Quarry', exact:true}).click();
   await expect(page.locator('canvas[data-renderer]')).toHaveAttribute('data-renderer','2d');
-  await expect(page.locator('html')).toHaveJSProperty('scrollWidth',360);
+  await page.evaluate(()=>document.fonts.ready);
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth',320);
   await page.getByRole('button',{name:/Sound/}).click();
   await expect(page.locator('#sound')).toHaveAttribute('aria-pressed','true');
 });
