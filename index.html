@@ -1,10 +1,25 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#f7f5ef"><meta name="description" content="The Weather Quarry, an interactive exhibition and competition archive by movrax60, an international CTF team."><title>The Weather Quarry — movrax60</title><link rel="icon" href="/mark.svg"></head>
-<body><a class="skip" href="#content">Skip to content</a>
-<header><a class="brand" href="#quarry" aria-label="movrax60 home"><img src="/mark.svg" alt="">movrax60</a><nav aria-label="Main navigation"><a href="#quarry">Quarry</a><a href="#results">Results</a><a href="#team">Team</a></nav><button type="button" id="sound" aria-pressed="false"><i class="bars" aria-hidden="true"><b></b><b></b><b></b><b></b></i>Sound <span class="sound-state">off</span></button></header>
-<main id="content" tabindex="-1"><section id="quarry"><div class="intro"><div><p class="eyebrow"><i class="sun"></i> International CTF team</p><h1>The <em>Weather</em> Quarry</h1></div><a class="signature" href="#team">Meet movrax60 <span aria-hidden="true">↗</span></a></div>
-<div class="scene"><picture><source media="(max-aspect-ratio: 4/5)" srcset="/quarry-tall.webp"><img data-quarry-plate src="/quarry.webp" alt="Sunlit tiers of cut limestone overlooking the quarry floor" fetchpriority="high"></picture><div class="cut-mark" aria-hidden="true"><b id="mark-rank">10</b><span id="mark-name">Nullcon Goa HackIM 2026</span></div><canvas tabindex="0" role="button" aria-pressed="false" aria-label="Part the rain"></canvas><div class="scene-meta"><i></i> Limestone &amp; rainfall</div><a class="inscription" href="#results"><small>Featured result</small><strong id="engraving">Nullcon Goa HackIM 2026</strong><span id="rank">10th place</span></a>
-<input type="hidden" id="cut" value="0"></div>
-<div class="caption"><span>Blender Cycles · Live weather</span><a class="phone-feature" href="#results">Featured result <b id="phone-result">Nullcon Goa HackIM 2026</b> ↗</a></div><div class="home-records"><div class="home-heading"><h2>Selected results</h2><a href="#results">All results ↗</a></div><div id="featured-list"></div></div></section>
-<section id="panel" hidden></section></main>
-<footer><span>movrax60</span><a href="https://ctftime.org/team/421037" target="_blank" rel="noopener">CTFtime ↗</a></footer><script type="module" src="/main.ts"></script></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111115"><meta name="description" content="Meet MOVRAX60, an international capture the flag team. Explore the roster, strongest finishes and competition record.">
+<title>MOVRAX60 — International CTF team</title><link rel="icon" href="/mark.svg">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body id="top">
+<a class="skip" href="#main">Skip to content</a>
+<header class="wrap"><a class="logo" href="#top"><img src="/mark.svg" alt=""> movrax60</a>
+<nav aria-label="Main navigation"><a href="#team">Roster</a><a href="#results">Results</a><a class="external" href="https://ctftime.org/team/421037">CTFtime ↗</a></nav></header>
+<main id="main">
+<section class="hero wrap" aria-labelledby="identity">
+<div class="art" aria-hidden="true"><div class="halo"></div><img src="/fold.webp" alt="" fetchpriority="high"></div>
+<div class="hero-text"><p class="kicker"><span class="spark">✳</span> International CTF team</p>
+<h1 id="identity">MOVRAX<span>60</span></h1>
+<p class="lede">Eight players competing together in cybersecurity capture the flag events around the world.</p>
+<a class="jump" href="#finishes">Competition record <span aria-hidden="true">↓</span></a></div>
+</section>
+<section id="finishes" class="wrap highlights"><div class="section-head"><h2>Best finishes</h2><a href="#results">All {{events}} results ↓</a></div><div class="finishes"><!-- finishes --></div></section>
+<section id="team" class="wrap split"><div><p class="kicker">The collective</p><h2>Team roster<span>.</span></h2><p class="muted">{{members}} members · Public profiles</p></div><ul class="roster"><!-- roster --></ul></section>
+<section id="results" class="wrap split"><div><p class="kicker">2025 — 2026</p><h2>Event record<span>.</span></h2><p class="muted">{{events}} recorded competitions</p></div><div class="ledger"><div class="filters" hidden><label>Season <select id="year"><option value="">All seasons</option><option>2026</option><option>2025</option></select></label><label>Order <select id="order"><option value="recent">Most recent</option><option value="best">Best place</option></select></label></div><table><thead><tr><th>Place</th><th>Event</th><th>Points</th></tr></thead><tbody><!-- events --></tbody></table><p class="muted">Source: <a href="https://ctftime.org/team/421037">CTFtime</a> · 22 November 2026</p></div></section>
+</main><footer class="wrap"><a class="logo" href="#top">movrax60</a><a href="#top">Back to top ↑</a></footer>
+<script type="module" src="/main.ts"></script></body></html>
