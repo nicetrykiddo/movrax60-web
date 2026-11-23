@@ -4,246 +4,418 @@ import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 
 gsap.registerPlugin(ScrollTrigger);
-const portrait = matchMedia('(max-aspect-ratio:1/1)');
-const canvas = document.querySelector('canvas')!;
-const context = canvas.getContext('2d', { alpha: false });
-const label = document.querySelector<HTMLElement>('#shot-name')!;
-const chapterLinks = document.querySelectorAll<HTMLAnchorElement>('nav a');
-document.querySelector<HTMLElement>('.film-edge')!.hidden = false;
-const lastFrame = 127;
-const chapterAt = (frame: number) => (frame < 40 ? 0 : frame < 84 ? 1 : 2);
-const names = ['Projection', 'Film transport', 'Registration'];
-const stills = [0, 62, lastFrame];
 
-function describe(progress: number) {
-  const chapter = chapterAt(Math.round(progress * lastFrame));
-  if (label.textContent !== names[chapter]) {
-    label.textContent = names[chapter];
-    chapterLinks.forEach((link, index) => {
-      if (index + 1 === chapter) link.setAttribute('aria-current', 'location');
-      else link.removeAttribute('aria-current');
-    });
-  }
-  document.documentElement.style.setProperty(
-    '--progress',
-    (progress * 100).toFixed(2) + '%',
-  );
-}
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const frameCount = 120;
+const wrapFrame = (value: number) =>
+  ((Math.round(value) % frameCount) + frameCount) % frameCount;
+const stillURL = (frame: number) =>
+  `/pin/${String(frame).padStart(3, '0')}.webp`;
 
-// All cameras, geometry and optics are rendered offline. Keep just a short
-// neighbourhood of decoded frames in the browser, even when the reader jumps.
-function filmPlayer(ctx: CanvasRenderingContext2D) {
+function mountPin(
+  runway: HTMLElement,
+  pin: HTMLImageElement,
+  control: HTMLButtonElement,
+) {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  if (!context) return;
+  canvas.width = canvas.height = 960;
+  canvas.setAttribute('aria-hidden', 'true');
+  pin.after(canvas);
+  pin.dataset.frame = '0';
+
+  const hit = document.createElement('div');
+  hit.className = 'pin-hit';
+  hit.setAttribute('aria-hidden', 'true');
+  control.before(hit);
+  control.hidden = false;
+
   const cache = new Map<number, HTMLImageElement>();
   const pending = new Set<number>();
-  const retryAt = new Map<number, number>();
-  let generation = 0,
-    desired = 0,
-    direction = 1,
-    alive = true,
-    lastPaint = '';
+  const failures = new Set<number>();
+  const atlas = new Image();
+  let position = 0;
+  let target = 0;
+  let manual = 0;
+  let scrollAngle = 0;
+  let direction = 1;
+  let scrollProgress = 0;
+  let currentPaint = '';
+  let frameRequest = 0;
+  let pointer:
+    | { id: number; x: number; start: number; moved: boolean }
+    | undefined;
+  const compact = matchMedia('(max-width: 760px), (max-aspect-ratio: 4/5)');
 
-  function paint() {
-    const rounded = Math.round(desired);
-    const shot = chapterAt(rounded);
-    const candidates = [...cache.keys()].filter(
-      (key) => chapterAt(key) === shot,
-    );
-    if (!candidates.length) return;
-    let first = candidates.reduce((a, b) =>
-      Math.abs(a - desired) <= Math.abs(b - desired) ? a : b,
-    );
-    let second = first,
-      blend = 0;
-    const low = Math.floor(desired),
-      high = low + 1;
-    if (
-      shot !== 0 &&
-      cache.has(low) &&
-      cache.has(high) &&
-      chapterAt(low) === chapterAt(high)
-    ) {
-      first = low;
-      second = high;
-      blend = Math.round((desired - low) * 20) / 20;
-    }
-    const id = [first, second, blend].join('/');
-    if (id === lastPaint) return;
-    lastPaint = id;
-    ctx.drawImage(cache.get(first)!, 0, 0, canvas.width, canvas.height);
-    if (blend > 0) {
-      ctx.globalAlpha = blend;
-      ctx.drawImage(cache.get(second)!, 0, 0, canvas.width, canvas.height);
-      ctx.globalAlpha = 1;
-    }
-    canvas.dataset.frame = String(blend > 0.5 ? second : first);
-    document.documentElement.classList.add('film-ready');
-  }
-
-  function load(index: number) {
-    const run = generation;
+  function loadFrame(frame: number) {
+    if (cache.has(frame) || pending.has(frame) || failures.has(frame)) return;
     const image = new Image();
-    pending.add(index);
+    pending.add(frame);
     image.decoding = 'async';
-    const filename =
-      String(Math.floor(index)).padStart(3, '0') +
-      (Number.isInteger(index) ? '' : 'a') +
-      '.webp';
-    image.src =
-      '/film/' + (portrait.matches ? 'tall' : 'wide') + '/' + filename;
+    image.src = stillURL(frame);
     image
       .decode()
       .then(() => {
-        if (!alive || run !== generation) return;
-        retryAt.delete(index);
-        cache.set(index, image);
-        const radius = desired < 39 ? 2.5 : 5;
-        for (const key of cache.keys()) {
-          if (Math.abs(desired - key) > radius && !stills.includes(key))
-            cache.delete(key);
-        }
+        cache.set(frame, image);
+        if (cache.size > 16) cache.delete(cache.keys().next().value!);
+        render();
       })
-      .catch(() => {
-        if (alive && run === generation)
-          retryAt.set(index, performance.now() + 15000);
-      })
-      .finally(() => {
-        if (!alive || run !== generation) return;
-        pending.delete(index);
-        paint();
-        fill();
-      });
+      .catch(() => failures.add(frame))
+      .finally(() => pending.delete(frame));
   }
-  function fill() {
-    const step = desired < 39 ? 0.5 : 1;
-    const key = Math.round(desired / step) * step;
-    const next =
-      step === 0.5
-        ? [
-            key,
-            key + direction * step,
-            key - direction * step,
-            key + direction,
-            0,
-          ]
-        : [
-            key,
-            Math.floor(desired),
-            Math.ceil(desired),
-            key + direction,
-            key + direction * 2,
-            key - direction,
-            stills[chapterAt(key)],
-          ];
-    for (const index of next) {
-      if (pending.size >= 3) break;
-      if (
-        (index > 39 && !Number.isInteger(index)) ||
-        index < 0 ||
-        index > lastFrame ||
-        pending.has(index) ||
-        cache.has(index) ||
-        (retryAt.get(index) ?? 0) > performance.now()
-      )
-        continue;
-      load(index);
+
+  function render() {
+    const exact = wrapFrame(position);
+    const still = cache.get(exact);
+    const preview = wrapFrame(Math.round(position / 4) * 4);
+    const painted = still ? exact : preview;
+    const useAtlas = Boolean(!still && atlas.complete && atlas.naturalWidth);
+    if (!still && !useAtlas) return;
+    const key = `${painted}/${useAtlas}`;
+    if (key === currentPaint) return;
+    currentPaint = key;
+    context!.clearRect(0, 0, canvas.width, canvas.height);
+    if (still) {
+      context!.drawImage(still, 0, 0);
+    } else {
+      const tile = 384;
+      const index = preview / 4;
+      context!.drawImage(
+        atlas,
+        (index % 6) * tile,
+        Math.floor(index / 6) * tile,
+        tile,
+        tile,
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      );
     }
+    runway.classList.add('pin-ready');
+    pin.dataset.frame = String(painted);
   }
-  function resize() {
-    generation++;
-    cache.clear();
-    pending.clear();
-    retryAt.clear();
-    lastPaint = '';
-    canvas.width = portrait.matches ? 768 : 1440;
-    canvas.height = portrait.matches ? 1024 : 864;
-    document.documentElement.classList.remove('film-ready');
-    fill();
+
+  function tick() {
+    frameRequest = 0;
+    const diff = target - position;
+    if (Math.abs(diff) < 0.45 || reduced.matches) position = target;
+    else position += diff * 0.14;
+    render();
+    if (pending.size < 3) {
+      for (const index of [position, position + direction * 2, target]) {
+        if (pending.size >= 3) break;
+        loadFrame(wrapFrame(index));
+      }
+    }
+    if (position !== target) frameRequest = requestAnimationFrame(tick);
   }
-  portrait.addEventListener('change', resize);
-  resize();
-  return {
-    seek(value: number) {
-      const clamped = Math.min(lastFrame, Math.max(0, value));
-      if (clamped === desired && !retryAt.size) return;
-      if (clamped !== desired) direction = clamped > desired ? 1 : -1;
-      desired = clamped;
-      paint();
-      fill();
-    },
-    stop() {
-      alive = false;
-      generation++;
-      cache.clear();
-      pending.clear();
-      portrait.removeEventListener('change', resize);
-      document.documentElement.classList.remove('film-ready');
-      delete canvas.dataset.frame;
-    },
-  };
+
+  function turn(value: number) {
+    target = value;
+    direction = target >= position ? 1 : -1;
+    if (!reduced.matches && !atlas.src) {
+      atlas.src = '/pin/orbit.webp';
+    }
+    if (!frameRequest) frameRequest = requestAnimationFrame(tick);
+  }
+
+  atlas.addEventListener('load', render);
+  control.addEventListener('click', () => {
+    manual += frameCount / 2;
+    turn(manual + scrollAngle);
+  });
+  hit.addEventListener('pointerdown', (event) => {
+    if (!event.isPrimary || event.button !== 0) return;
+    pointer = {
+      id: event.pointerId,
+      x: event.clientX,
+      start: manual,
+      moved: false,
+    };
+    hit.setPointerCapture(event.pointerId);
+  });
+  hit.addEventListener('pointermove', (event) => {
+    if (pointer?.id !== event.pointerId) return;
+    const distance = event.clientX - pointer.x;
+    if (!pointer.moved && Math.abs(distance) < 5) return;
+    pointer.moved = true;
+    manual = pointer.start + distance * 0.44;
+    turn(manual + scrollAngle);
+  });
+  hit.addEventListener('pointerup', (event) => {
+    if (pointer?.id !== event.pointerId) return;
+    if (!pointer.moved) control.click();
+    pointer = undefined;
+  });
+  hit.addEventListener('lostpointercapture', () => {
+    pointer = undefined;
+  });
+  hit.addEventListener('pointercancel', () => {
+    pointer = undefined;
+  });
+
+  function applyLayout(progress: number) {
+    const mobile = compact.matches;
+    const t = gsap.parseEase('power2.inOut')(Math.min(1, progress / 0.87));
+    runway.style.setProperty(
+      '--pin-x',
+      `${mobile ? 58 - 4 * t : 72 - 4.5 * t}%`,
+    );
+    runway.style.setProperty('--pin-y', `${(mobile ? 31 : 45) - 7 * t}%`);
+    runway.style.setProperty('--pin-scale', String(1 + 0.13 * t));
+    scrollAngle = -30 * t;
+    turn(manual + scrollAngle);
+  }
+
+  const scope = gsap.matchMedia();
+  scope.add('(prefers-reduced-motion: no-preference)', () => {
+    const trigger = ScrollTrigger.create({
+      trigger: runway,
+      start: 'top top',
+      end: 'bottom top',
+      onUpdate: ({ progress }) => {
+        scrollProgress = progress;
+        applyLayout(progress);
+      },
+    });
+    const resize = () => applyLayout(scrollProgress);
+    compact.addEventListener('change', resize);
+    if (trigger.progress > 0) applyLayout(trigger.progress);
+    return () => {
+      trigger.kill();
+      compact.removeEventListener('change', resize);
+      for (const prop of ['--pin-x', '--pin-y', '--pin-scale'])
+        runway.style.removeProperty(prop);
+      scrollAngle = 0;
+      turn(manual);
+    };
+  });
+}
+
+const runway = document.querySelector<HTMLElement>('.runway');
+if (runway) {
+  mountPin(
+    runway,
+    document.querySelector<HTMLImageElement>('#pin')!,
+    document.querySelector<HTMLButtonElement>('.pin-control')!,
+  );
 }
 
 gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
-  if (!context) return;
   const lenis = new Lenis({
     anchors: true,
     smoothWheel: true,
     syncTouch: false,
-    duration: 0.85,
+    autoRaf: true,
   });
   lenis.on('scroll', ScrollTrigger.update);
-  const player = filmPlayer(context);
-  let target = 0,
-    position = 0,
-    velocity = 0,
-    priorTime = 0;
-  const trigger = ScrollTrigger.create({
-    start: 0,
-    end: () => Math.max(1, ScrollTrigger.maxScroll(window)),
-    onUpdate: (self) => {
-      target = self.progress * lastFrame;
-      describe(self.progress);
-    },
-    onRefresh: (self) => {
-      target = self.progress * lastFrame;
+  const shots = gsap.utils.toArray<HTMLElement>('.scene-art');
+  const stopShots = shots.map(mountShot);
+  const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
+  let reflectedArt: HTMLElement | null = null;
+  function reflect(event: PointerEvent) {
+    if (!finePointer.matches || event.pointerType === 'touch') return;
+    const next =
+      (event.target as Element)
+        .closest('.story-scene')
+        ?.querySelector<HTMLElement>('.scene-art') ?? null;
+    if (next !== reflectedArt) {
+      reflectedArt?.style.removeProperty('--reflection');
+      reflectedArt = next;
+    }
+    if (!reflectedArt) return;
+    const bounds = reflectedArt.getBoundingClientRect();
+    reflectedArt.style.setProperty(
+      '--reflection-x',
+      `${((event.clientX - bounds.left) / bounds.width) * 100}%`,
+    );
+    reflectedArt.style.setProperty(
+      '--reflection-y',
+      `${((event.clientY - bounds.top) / bounds.height) * 100}%`,
+    );
+    reflectedArt.style.setProperty('--reflection', '1');
+  }
+  document.addEventListener('pointermove', reflect, { passive: true });
+  gsap.utils.toArray<HTMLElement>('.scene-copy').forEach((copy) => {
+    gsap.fromTo(
+      copy,
+      { y: 34 },
+      {
+        y: 0,
+        scrollTrigger: {
+          trigger: copy.parentElement,
+          start: 'top 96%',
+          end: 'top 30%',
+          scrub: 0.38,
+        },
+      },
+    );
+  });
+  gsap.to('header', {
+    '--page-progress': '100%',
+    ease: 'none',
+    scrollTrigger: {
+      start: 0,
+      end: () => ScrollTrigger.maxScroll(window),
+      scrub: 0.3,
     },
   });
-  position = target;
-  function tick(time: number) {
-    lenis.raf(time * 1000);
-    const elapsed = Math.min(0.05, Math.max(0, time - priorTime));
-    priorTime = time;
-    if (document.hidden) return;
-    const dt = elapsed / 4;
-    for (let step = 0; step < 4; step++) {
-      velocity += ((target - position) * 240 - velocity * 29) * dt;
-      position += velocity * dt;
-    }
-    if (Math.abs(position - target) < 0.015 && Math.abs(velocity) < 0.1) {
-      position = target;
-      velocity = 0;
-    }
-    player.seek(position);
-  }
-  gsap.ticker.add(tick);
   return () => {
-    gsap.ticker.remove(tick);
-    trigger.kill();
+    stopShots.forEach((stop) => stop());
+    document.removeEventListener('pointermove', reflect);
+    reflectedArt?.style.removeProperty('--reflection');
     lenis.destroy();
-    player.stop();
   };
 });
 
-const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-function nativeProgress() {
-  if (reduced.matches || !context)
-    describe(
-      scrollY /
-        Math.max(1, document.documentElement.scrollHeight - innerHeight),
-    );
+function mountShot(art: HTMLElement) {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d', { alpha: false });
+  if (!context) return () => {};
+  art.append(canvas);
+  const landscape = matchMedia('(min-aspect-ratio: 1/1)');
+  const total = Number(art.dataset.frames);
+  const cache = new Map<number, HTMLImageElement>();
+  const loading = new Set<number>();
+  const failed = new Set<number>();
+  const playhead = { position: 0 };
+  let generation = 0;
+  let desired = 0;
+  let active = false;
+  let forward = 1;
+
+  function paint() {
+    const image = cache.get(desired);
+    if (!image || art.dataset.frame === String(desired)) return;
+    if (
+      canvas.width !== image.naturalWidth ||
+      canvas.height !== image.naturalHeight
+    ) {
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+    }
+    context!.drawImage(image, 0, 0);
+    art.dataset.frame = String(desired);
+  }
+
+  function fill() {
+    if (!active) return;
+    const view = landscape.matches ? 'wide' : 'tall';
+    for (const frame of [
+      desired,
+      desired + forward,
+      desired - forward,
+      desired + 2 * forward,
+    ]) {
+      if (loading.size >= 2) break;
+      if (
+        frame < 0 ||
+        frame >= total ||
+        cache.has(frame) ||
+        loading.has(frame) ||
+        failed.has(frame)
+      )
+        continue;
+      const image = new Image();
+      const started = generation;
+      loading.add(frame);
+      image.decoding = 'async';
+      image.src = `/scenes/${art.dataset.shot}/${view}/${String(frame).padStart(3, '0')}.webp`;
+      image
+        .decode()
+        .then(() => {
+          if (started === generation) {
+            cache.set(frame, image);
+            for (const index of cache.keys()) {
+              if (Math.abs(desired - index) > 3) cache.delete(index);
+            }
+            paint();
+          }
+        })
+        .catch(() => {
+          if (started === generation) failed.add(frame);
+        })
+        .finally(() => {
+          if (started !== generation) return;
+          loading.delete(frame);
+          fill();
+        });
+    }
+  }
+
+  function onPosition() {
+    art.style.setProperty('--art-drift', `${(0.5 - playhead.position) * 3.5}%`);
+    const next = Math.round(playhead.position * (total - 1));
+    if (next === desired) return;
+    forward = next > desired ? 1 : -1;
+    desired = next;
+    paint();
+    fill();
+  }
+
+  function reset() {
+    generation++;
+    cache.clear();
+    loading.clear();
+    failed.clear();
+    delete art.dataset.frame;
+  }
+
+  const shot = gsap.to(playhead, {
+    position: 1,
+    ease: 'none',
+    onUpdate: onPosition,
+    scrollTrigger: {
+      trigger: art.parentElement,
+      start: 'top bottom',
+      end: 'bottom top',
+      scrub: 0.25,
+      onToggle: ({ isActive }) => {
+        active = isActive;
+        if (isActive) fill();
+        else reset();
+      },
+    },
+  });
+  active = Boolean(shot.scrollTrigger?.isActive);
+  fill();
+  function changeView() {
+    reset();
+    fill();
+  }
+  landscape.addEventListener('change', changeView);
+  return () => {
+    active = false;
+    reset();
+    art.style.removeProperty('--art-drift');
+    landscape.removeEventListener('change', changeView);
+    shot.scrollTrigger?.kill();
+    shot.kill();
+    canvas.remove();
+  };
 }
-window.addEventListener('scroll', nativeProgress, { passive: true });
-reduced.addEventListener('change', nativeProgress);
-nativeProgress();
+
+const players = Array.from(document.querySelectorAll<HTMLElement>('.player'));
+const index = Array.from(
+  document.querySelectorAll<HTMLAnchorElement>('.player-index a'),
+);
+if (players.length) {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const focused = entries.find((entry) => entry.isIntersecting);
+      if (!focused) return;
+      index.forEach((link) => {
+        if (link.hash === '#' + focused.target.id)
+          link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
+    },
+    { rootMargin: '-12% 0px -55% 0px' },
+  );
+  players.forEach((player) => observer.observe(player));
+}
 
 const soundButton = document.querySelector<HTMLButtonElement>('.sound')!;
 let audio: HTMLAudioElement | undefined;
@@ -273,7 +445,7 @@ async function playSound() {
 soundButton.hidden = false;
 soundButton.addEventListener('click', () => {
   if (!audio) {
-    audio = new Audio('/audio/transport.mp3');
+    audio = new Audio('/audio/ambient.mp3');
     audio.loop = true;
     audio.volume = 0.28;
   }
