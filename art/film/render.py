@@ -147,8 +147,47 @@ for x in (-.93,1.37):
         box('Screw slot',(x,-.703,z),(.057,.007,.007),black,.001)
 for i in range(14):
     box('Cast vent',(.38+i*.071,-.679,1.42),(.029,.025,.35),black,.012)
+# Small chips concentrate where hands undo the latches and at the cover edges.
+# One mesh holds the exposed flecks and short abrasions flush to the paint.
+rng_wear=random.Random(4718)
+chip_verts=[];chip_faces=[]
+for i in range(165):
+    if i<85:
+        x=rng_wear.uniform(-.91,1.34);z=rng_wear.choice((.495,1.785))+rng_wear.uniform(-.01,.01)
+    else:
+        x=rng_wear.gauss(-.93,.085);z=rng_wear.choice((.69,1.56))+rng_wear.gauss(0,.079)
+    length=rng_wear.uniform(.002,.017);height=length*rng_wear.uniform(.11,.43)
+    start=len(chip_verts)
+    for dx,dz in ((-1,0),(-.35,1),(.94,.52),(.74,-.8),(-.45,-.57)):
+        chip_verts.append((x+dx*length,-.671,z+dz*height))
+    chip_faces.append(tuple(range(start,start+5)))
+chips=bpy.data.meshes.new('Scattered paint chips');chips.from_pydata(chip_verts,[],chip_faces);chips.update()
+chip_ob=bpy.data.objects.new('Exposed casting at wear points',chips);scene.collection.objects.link(chip_ob)
+chips.materials.append(mat('Oxidized casting',(.19,.17,.13),.67,.61))
+# A weighted rubber mains lead leaves the housing and rests on the bench.
+lead=bpy.data.curves.new('Mains cable','CURVE');lead.dimensions='3D';lead.resolution_u=16;lead.bevel_depth=.034;lead.bevel_resolution=4
+cord=lead.splines.new('BEZIER')
+route=[(1.47,.38,.65),(1.99,.38,.49),(2.37,.19,.026),(3.25,.35,.025),(3.77,1.30,.025),(4.62,1.63,.025),(6.4,1.13,.025),(8.1,1.84,.025)]
+cord.bezier_points.add(len(route)-1)
+for point,location in zip(cord.bezier_points,route):
+    point.co=location;point.handle_left_type='AUTO';point.handle_right_type='AUTO'
+wire=bpy.data.objects.new('Rubber mains lead',lead);scene.collection.objects.link(wire);lead.materials.append(rubber)
 box('Identification plate',(-.36,-.70,.99),(.92,.025,.31),brass,.018)
-label('movrax60',(-.36,-.721,.993),.155,black)
+label('movrax60',(-.36,-.721,1.025),.129,black)
+label('35 MM   /   OPTICAL TRANSPORT',(-.36,-.722,.927),.035,black)
+for x in (-.755,.035):
+    for z in (.873,1.105):
+        cyl('Nameplate rivet',(x,-.719,z),.016,.013,steel)
+# A quick-release latch closes the hinged inspection cover.
+for z in (.69,1.56):
+    box('Latch keeper',(-1.015,-.685,z),(.14,.05,.16),steel,.014)
+    box('Blackened toggle',(-1.015,-.727,z-.038),(.104,.045,.19),black,.018)
+    rod('Over-centre pin',(-1.095,-.731,z+.033),(-.935,-.731,z+.033),.018,brass)
+for x in (-.66,.94):
+    for k in range(3):
+        cyl('Hinge knuckle',(x+.055*k,-.658,.465),.035,.051,steel,(1,0,0),.004)
+label('DRIVE',(.77,-.687,1.114),.05,cream)
+label('01   /   08',(1.035,-.689,.527),.046,cream)
 cyl('Speed dial',(.78,-.75,.81),.22,.18,black)
 torus('Dial bezel',(.78,-.846,.81),.19,.018,brass)
 for i in range(13):
@@ -161,7 +200,18 @@ for offset,r,d,m in [(0,.48,.54,enamel),(.35,.355,.33,brass),(.63,.34,.35,black)
     cyl('Lens barrel',mount+axis*offset,r,d,m,axis)
 for i in range(14):torus('Focusing groove',mount+axis*(.44+i*.029),.342,.014,brass,axis)
 for i in range(4):cyl('Coated objective',mount+axis*(1.01+i*.009),.282-i*.022,.014,glass if i%2==0 else brass,axis,.002)
-cyl('Warm aperture',mount+axis*1.05,.19,.01,bulb,axis,.001)
+# The bowed front glass catches the booth window. The smaller warm aperture
+# is visible through it, leaving the coating and lens barrel legible at macro scale.
+cyl('Warm aperture',mount+axis*1.05,.128,.01,bulb,axis,.001)
+objective=mat('Objective glass',(.85,.76,.57),.074)
+optics=objective.node_tree.nodes['Principled BSDF']
+optics.inputs['Transmission Weight'].default_value=.88
+optics.inputs['IOR'].default_value=1.52
+optics.inputs['Coat Weight'].default_value=.58
+bpy.ops.mesh.primitive_uv_sphere_add(segments=56,ring_count=24,location=mount+axis*1.092)
+face=bpy.context.object;face.name='Convex objective';face.rotation_euler=axis.to_track_quat('Z','Y').to_euler()
+face.scale=(.244,.244,.039);face.data.materials.append(objective)
+for poly in face.data.polygons:poly.use_smooth=True
 
 reels=[]
 def build_reel(x,z,r):
@@ -176,6 +226,13 @@ def build_reel(x,z,r):
             a=2*math.pi*i/7
             spoke=box('Pressed flange spoke',(x+math.sin(a)*r*.63,y,z+math.cos(a)*r*.63),(r*.205,.071,r*.72),steel,.032)
             spoke.rotation_euler.y=a;parent(spoke,pivot)
+            if y<0:
+                # An embossed stiffening rib and two peened fasteners on each stamped arm.
+                rib=box('Stamped stiffener',(x+math.sin(a)*r*.66,y-.039,z+math.cos(a)*r*.66),(r*.045,.018,r*.46),steel,.009)
+                rib.rotation_euler.y=a;parent(rib,pivot)
+                for fraction in (.315,.908):
+                    pin=cyl('Peened flange rivet',(x+math.sin(a)*r*fraction,y-.048,z+math.cos(a)*r*fraction),.025,.018,steel)
+                    parent(pin,pivot)
     cyl('Wound emulsion',(x,-.125,z),r*.83,.36,mat('Dark wound film',(.068,.039,.02),.28,.38))
     for i in range(23):torus('Visible film layers',(x,-.316,z),r*(.32+i*.022),.0038,brass if i%6==0 else black)
     cyl('Axle cap',(x,-.435,z),r*.167,.14,brass)
@@ -353,8 +410,12 @@ def pose(f,portrait):
     cam.data.shift_y=(.085 if portrait else .02)*-1 if f<40 else (-.10 if portrait else 0)
 
 keys=[0,62,127,20,35,39,40,50,74,83,84,96,112]
-frames=([int(x) for x in os.environ['FILM_FRAMES'].split(',')] if 'FILM_FRAMES' in os.environ
-        else list(dict.fromkeys(keys+list(range(128)))))
+# Half-frames are isolated native exposures of the opening dolly; a crossfade
+# would put a second outline along the passing lens and reel spokes.
+def exposure_name(frame):
+    return f'{int(frame):03}'+('a' if frame%1 else '')+'.webp'
+frames=([float(x) for x in os.environ['FILM_FRAMES'].split(',')] if 'FILM_FRAMES' in os.environ
+        else list(dict.fromkeys(keys+list(range(128))+[i+.5 for i in range(39)])))
 views=os.getenv('FILM_VIEWS','wide,tall').split(',')
 for segment in [frames[:3], frames[3:]]:
     for orientation,f in ((orientation,f) for orientation in views for f in segment):
@@ -363,7 +424,7 @@ for segment in [frames[:3], frames[3:]]:
         scene.render.resolution_y=1024 if portrait else 864
         (OUT/orientation).mkdir(parents=True,exist_ok=True)
         pose(f,portrait)
-        target=OUT/orientation/f'{f:03}.webp'
+        target=OUT/orientation/exposure_name(f)
         scene.render.filepath=str(target)
         bpy.ops.render.render(write_still=True)
         print('FRAME',orientation,f,flush=True)
