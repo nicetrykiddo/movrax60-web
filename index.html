@@ -2,46 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#100f0b">
-  <meta name="description" content="movrax60 is an international cybersecurity capture the flag team. Meet eight players through The Last Exposure, a scroll film.">
-  <title>movrax60 — The Last Exposure</title>
-  <link rel="icon" href="/mark.svg"><link rel="stylesheet" href="/style.css">
+  <meta name="theme-color" content="#131617"><meta name="description" content="Meet movrax60, an international cybersecurity capture the flag team. Explore the players and their competition highlights.">
+  <title>movrax60 — International CTF team</title>
+  <link rel="icon" href="/mascot.png"><link rel="preload" as="image" href="/pin/000.webp"><link rel="stylesheet" href="/style.css">
 </head>
-<body id="top">
+<body class="home" id="top">
 <a class="skip" href="#main">Skip to content</a>
-<div class="screen" aria-hidden="true">
-  <picture><source media="(max-aspect-ratio:1/1)" srcset="/film/tall/000.webp"><img src="/film/wide/000.webp" alt="" fetchpriority="high"></picture>
-  <canvas width="1440" height="864"></canvas>
-</div>
-<header>
-  <a class="brand" href="#top" aria-label="movrax60 home"><img src="/mark.svg" alt="">movrax60</a>
-  <nav aria-label="Film chapters"><a href="#team">Team</a><a href="#results">Result</a></nav>
-  <button class="sound" hidden aria-pressed="false" aria-label="Sound off"><i aria-hidden="true"><b></b><b></b><b></b><b></b></i><span>Sound off</span></button>
-</header>
+<!-- header -->
 <main id="main">
-  <section class="chapter opening" id="exposure" aria-labelledby="identity">
-    <div class="copy">
-      <p class="label"><i></i> The last exposure</p>
-      <h1 id="identity">movrax<span>60</span></h1>
-      <p class="lede">An international cybersecurity CTF team.</p>
-      <a class="continue" href="#team">Meet the team <span aria-hidden="true">↓</span></a>
-    </div>
+  <div class="runway">
+    <div class="stage" aria-hidden="true"><div class="stage-light"></div><div class="pin-position"><img id="pin" src="/pin/000.webp" width="960" height="960" alt="" fetchpriority="high"></div></div>
+    <section class="hero page-section" id="identity" aria-labelledby="hero-title">
+      <div class="hero-main">
+        <p class="kicker"><i></i> International CTF team</p>
+        <h1 id="hero-title">movrax<span>60</span></h1>
+        <p class="hero-deck">We play cybersecurity capture the flag.<br>Meet the people behind the handle.</p>
+        <div class="actions"><a class="button" href="/members/">Meet the team <b aria-hidden="true">↗</b></a><a class="text-link" href="#results">Our results <b aria-hidden="true">↓</b></a></div>
+      </div>
+      <button class="pin-control" hidden aria-label="Turn the mascot pin" type="button"><span aria-hidden="true">↻</span> Turn the pin</button>
+      <div class="hero-foot"><a href="#team"><span class="scroll-line" aria-hidden="true"></span> Scroll to explore</a><span>Capture the flag <i>/</i> movrax60</span></div>
+    </section>
+    <section class="crew page-section" id="team" aria-labelledby="crew-title">
+      <div class="crew-copy">
+        <p class="kicker"><i></i> Members</p>
+        <h2 id="crew-title">Behind<br>the handles<span>.</span></h2>
+        <p class="lede">Eight players on our public roster. Get to know their handles, interests, and competition histories.</p>
+        <a class="button" href="/members/">Explore the roster <b aria-hidden="true">↗</b></a>
+      </div>
+      <div class="handle-strip" aria-label="Team roster"><!-- handle strip --></div>
+    </section>
+  </div>
+  <section class="spotlight page-section" id="results" aria-labelledby="highlight-title">
+    <div class="spot-head"><p class="kicker"><i></i> Competition spotlight</p><p class="meta">Hack The Box <span>/</span> July 2026</p></div>
+    <!-- spotlight -->
   </section>
-  <section class="chapter team" id="team" aria-labelledby="roster">
-    <div class="copy">
-      <p class="label"><i></i> Film transport</p>
-      <h2 id="roster">The team<span>.</span></h2>
-      <ul class="roster"><!-- roster --></ul>
-    </div>
+  <section class="results page-section" aria-labelledby="results-title">
+    <div class="section-heading"><div><p class="kicker"><i></i> Competition record</p><h2 id="results-title">More results<span>.</span></h2></div><a class="text-link" href="https://ctftime.org/team/421037">Full CTFtime record <b aria-hidden="true">↗</b></a></div>
+    <div class="result-list"><!-- results --></div>
   </section>
-  <section class="chapter result" id="results" aria-labelledby="event">
-    <div class="copy">
-      <p class="label"><i></i> Competition highlight</p>
-      <!-- highlight -->
-      <div class="links"><a class="continue" href="https://ctftime.org/team/421037">Team on CTFtime ↗</a><a href="#top">Replay ↑</a></div>
-    </div>
-  </section>
+  <!-- contact -->
 </main>
-<div class="film-edge" hidden aria-hidden="true"><span id="shot-name">Projection</span><span class="perfs"></span><span>The last exposure</span></div>
+<!-- footer -->
 <script type="module" src="/main.ts"></script>
 </body></html>
