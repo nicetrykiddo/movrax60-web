@@ -250,60 +250,61 @@ light('Overhead cloth',(-1,-6,5),230,(.67,.76,.86),6,2.6)
 bpy.ops.object.camera_add()
 cam = bpy.context.object
 scene.camera = cam
-permanent = set(scene.objects)
-shot_filter = os.getenv('SCENE_SHOTS',','.join(SHOTS)).split(',')
-frames = [int(x) for x in os.getenv('SCENE_FRAMES', ','.join(map(str,[0,16,29]+[i for i in range(COUNT) if i not in (0,16,29)]))).split(',')]
-views = os.getenv('SCENE_VIEWS','wide,tall').split(',')
+if __name__ == "__main__":
+    permanent = set(scene.objects)
+    shot_filter = os.getenv('SCENE_SHOTS',','.join(SHOTS)).split(',')
+    frames = [int(x) for x in os.getenv('SCENE_FRAMES', ','.join(map(str,[0,16,29]+[i for i in range(COUNT) if i not in (0,16,29)]))).split(',')]
+    views = os.getenv('SCENE_VIEWS','wide,tall').split(',')
 
-for shot in shot_filter:
-    for ob in list(scene.objects):
-        if ob not in permanent:
-            bpy.data.objects.remove(ob,do_unlink=True)
-    is_player = shot in PLAYERS
-    order = PLAYERS.index(shot) if is_player else SHOTS.index(shot)
-    desktop_right = (order%2==0) if is_player else shot not in ('roster','ritsec','chronos')
-    desk()
-    if is_player:
-        obj = player(HANDLES[order],order)
-    elif shot=='roster':
-        obj = badge()
-    elif shot=='contact':
-        obj = contact()
-    else:
-        obj = result(order-1)
-    kick.data.color = {
-        'roster': (.67,.91,.26), 'salt': (.75,.98,.19), 'nullcon': (.50,.71,1),
-        'ritsec': (.69,.94,.42), 'script': (.87,.68,.37), 'chronos': (.38,.83,1),
-        'contact': (.77,.97,.29),
-    }.get(shot, ((.63,.91,.27) if order%2==0 else (.50,.75,1)))
-    for view in views:
-        portrait = view=='tall'
-        scene.render.resolution_x = 768 if portrait else 1320
-        scene.render.resolution_y = 1024 if portrait else 880
-        target=OUT/shot/view
-        target.mkdir(parents=True,exist_ok=True)
-        for f in frames:
-            t = f/(9 if is_player else COUNT-1)
-            angle = ((order%3)*.28-.43 if is_player else order*.37-.65)
-            travel = {'contact': -.65, 'ritsec': -.81, 'chronos': -.81}
-            angle += travel.get(shot, .61 if is_player else .74) * t
-            obj.rotation_euler.z = angle
-            obj.location.z = .12*math.sin(t*math.pi)
-            shift = math.sin(t*math.pi/2)
-            if shot == 'ritsec':
-                cam.location = (1.25-.61*shift,-3.54+t*1.94,7.3-.47*t)
-            elif shot == 'chronos':
-                cam.location = (1.73-.40*shift,-2.89+t*.47,8.15-1.21*t)
-            else:
-                cam.location = (.95-.45*shift,-3.3+t*.84,7.8-.87*t)
-            cam.data.lens = (44 if portrait else 41) + 3*t
-            focus = Vector((-1.90 if desktop_right else 1.84,-.43,0))
-            if portrait:
-                focus = Vector((-.16,-1.18,0))
-                cam.data.lens -= 5
-            cam.rotation_euler = (focus-cam.location).to_track_quat('-Z','Y').to_euler()
-            key.location.x=-3+2*t
-            key.rotation_euler=(-key.location).to_track_quat('-Z','Y').to_euler()
-            kick.data.energy=140+100*t
-            scene.render.filepath=str(target/f'{f:03}.webp')
-            bpy.ops.render.render(write_still=True)
+    for shot in shot_filter:
+        for ob in list(scene.objects):
+            if ob not in permanent:
+                bpy.data.objects.remove(ob,do_unlink=True)
+        is_player = shot in PLAYERS
+        order = PLAYERS.index(shot) if is_player else SHOTS.index(shot)
+        desktop_right = (order%2==0) if is_player else shot not in ('roster','ritsec','chronos')
+        desk()
+        if is_player:
+            obj = player(HANDLES[order],order)
+        elif shot=='roster':
+            obj = badge()
+        elif shot=='contact':
+            obj = contact()
+        else:
+            obj = result(order-1)
+        kick.data.color = {
+            'roster': (.67,.91,.26), 'salt': (.75,.98,.19), 'nullcon': (.50,.71,1),
+            'ritsec': (.69,.94,.42), 'script': (.87,.68,.37), 'chronos': (.38,.83,1),
+            'contact': (.77,.97,.29),
+        }.get(shot, ((.63,.91,.27) if order%2==0 else (.50,.75,1)))
+        for view in views:
+            portrait = view=='tall'
+            scene.render.resolution_x = 768 if portrait else 1320
+            scene.render.resolution_y = 1024 if portrait else 880
+            target=OUT/shot/view
+            target.mkdir(parents=True,exist_ok=True)
+            for f in frames:
+                t = f/(9 if is_player else COUNT-1)
+                angle = ((order%3)*.28-.43 if is_player else order*.37-.65)
+                travel = {'contact': -.65, 'ritsec': -.81, 'chronos': -.81}
+                angle += travel.get(shot, .61 if is_player else .74) * t
+                obj.rotation_euler.z = angle
+                obj.location.z = .12*math.sin(t*math.pi)
+                shift = math.sin(t*math.pi/2)
+                if shot == 'ritsec':
+                    cam.location = (1.25-.61*shift,-3.54+t*1.94,7.3-.47*t)
+                elif shot == 'chronos':
+                    cam.location = (1.73-.40*shift,-2.89+t*.47,8.15-1.21*t)
+                else:
+                    cam.location = (.95-.45*shift,-3.3+t*.84,7.8-.87*t)
+                cam.data.lens = (44 if portrait else 41) + 3*t
+                focus = Vector((-1.90 if desktop_right else 1.84,-.43,0))
+                if portrait:
+                    focus = Vector((-.16,-1.18,0))
+                    cam.data.lens -= 5
+                cam.rotation_euler = (focus-cam.location).to_track_quat('-Z','Y').to_euler()
+                key.location.x=-3+2*t
+                key.rotation_euler=(-key.location).to_track_quat('-Z','Y').to_euler()
+                kick.data.energy=140+100*t
+                scene.render.filepath=str(target/f'{f:03}.webp')
+                bpy.ops.render.render(write_still=True)
