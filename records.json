@@ -4,35 +4,61 @@
   "members": [
     {
       "handle": "N3thunt3r69",
-      "profile": "https://ctftime.org/user/129391"
+      "profile": "https://ctftime.org/user/129391",
+      "since": "February 2022",
+      "focus": "Cryptography, reversing, OSINT, pwn, fullpwn and misc.",
+      "otherTeams": [
+        "L33tsp34k",
+        "rpwn",
+        "UNs33n"
+      ]
     },
     {
       "handle": "PandaGFX",
-      "profile": "https://ctftime.org/user/224064"
+      "profile": "https://ctftime.org/user/224064",
+      "since": "April 2025",
+      "otherTeams": [
+        "Cr4sh1ng0ut"
+      ]
     },
     {
       "handle": "lilmkt12",
-      "profile": "https://ctftime.org/user/241112"
+      "profile": "https://ctftime.org/user/241112",
+      "since": "October 2025",
+      "otherTeams": [
+        "Cr4sh1ng0ut",
+        "Raccoons in your network",
+        "VortexOps"
+      ]
     },
     {
       "handle": "clay_cs",
-      "profile": "https://ctftime.org/user/241408"
+      "profile": "https://ctftime.org/user/241408",
+      "since": "October 2025",
+      "focus": "Web challenges."
     },
     {
       "handle": "nicetrykiddo",
-      "profile": "https://ctftime.org/user/247876"
+      "profile": "https://ctftime.org/user/247876",
+      "since": "December 2025",
+      "otherTeams": [
+        "RootKansen"
+      ]
     },
     {
       "handle": "NITROGOD",
-      "profile": "https://ctftime.org/user/251677"
+      "profile": "https://ctftime.org/user/251677",
+      "since": "February 2026"
     },
     {
       "handle": "Ch4Ha3In",
-      "profile": "https://ctftime.org/user/251678"
+      "profile": "https://ctftime.org/user/251678",
+      "since": "February 2026"
     },
     {
       "handle": "m3ghar",
-      "profile": "https://ctftime.org/user/257742"
+      "profile": "https://ctftime.org/user/257742",
+      "since": "April 2026"
     }
   ],
   "events": [
@@ -259,6 +285,63 @@
       "place": 56,
       "points": 26281,
       "source": "https://ctftime.org/event/2980"
+    }
+  ],
+  "contacts": [
+    {
+      "label": "Telegram",
+      "url": ""
+    },
+    {
+      "label": "Discord",
+      "url": ""
+    },
+    {
+      "label": "Email",
+      "url": ""
+    }
+  ],
+  "spotlight": {
+    "title": "Cyber Apocalypse",
+    "edition": "The Salt Crown",
+    "organizer": "Hack The Box",
+    "date": "July 2026",
+    "place": 7,
+    "points": 69425,
+    "solved": 136,
+    "challenges": 136,
+    "source": "https://www.hackthebox.com/events/cyber-apocalypse-2026",
+    "report": "https://gh.linkedin.com/in/kelvin-danquah-akurang-0a17063b4",
+    "reportAuthor": "Benjamin Agyapong"
+  },
+  "featured": [
+    {
+      "event": "https://ctftime.org/event/3066",
+      "title": "Nullcon Goa HackIM",
+      "date": "Feb 2026",
+      "field": 637,
+      "metric": "place"
+    },
+    {
+      "event": "https://ctftime.org/event/3096",
+      "title": "RITSEC CTF",
+      "date": "Apr 2026",
+      "field": 663,
+      "metric": "place"
+    },
+    {
+      "event": "https://ctftime.org/event/3052",
+      "title": "scriptCTF",
+      "date": "Aug 2026",
+      "field": 777,
+      "metric": "place"
+    },
+    {
+      "event": "https://ctftime.org/event/3333",
+      "title": "Chronos Security CTF",
+      "date": "Nov 2026",
+      "field": null,
+      "metric": "points"
     }
   ]
 }
