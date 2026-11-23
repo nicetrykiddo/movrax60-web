@@ -156,6 +156,9 @@ export function mountCinema() {
   let raf = 0;
   let lastCut = '';
   let highSince = 0;
+  const landing = document.getElementById(location.hash.slice(1));
+  const opened = performance.now();
+  let landingScroll = false;
 
   function path(reel: string) {
     return `/journey/${route}/${view.matches ? 'wide' : 'tall'}/${reel}/`;
@@ -416,6 +419,10 @@ export function mountCinema() {
     screen.style.setProperty('--glare-y', `${focusY * 100}%`);
   }
 
+  function takeControl() {
+    landingScroll = true;
+  }
+
   function tick(time: number) {
     raf = requestAnimationFrame(tick);
     if (document.hidden) return;
@@ -426,7 +433,13 @@ export function mountCinema() {
     if (Math.abs(gap) > 1) lastScroll = time;
     const speed =
       Math.abs(gap) > viewportHeight * 2.4 ? 0.72 : 1 - Math.exp(-elapsed / 59);
-    y = Math.abs(gap) < 0.45 ? target : y + gap * speed;
+    if (landing && !landingScroll && time - opened < 450) {
+      const margin = parseFloat(getComputedStyle(landing).scrollMarginTop) || 0;
+      // Resolve the incoming camera at the anchor while the browser restores its scroll.
+      y = clamp(landing.getBoundingClientRect().top + target - margin, 0, end);
+    } else {
+      y = Math.abs(gap) < 0.45 || !ready ? target : y + gap * speed;
+    }
     const cut = choose(scenes, y, viewportHeight, end);
     render(cut, time);
     if (ready) atmosphere(time);
@@ -435,6 +448,8 @@ export function mountCinema() {
   const observer = new ResizeObserver(resize);
   observer.observe(document.querySelector('main')!);
   addEventListener('resize', resize, { passive: true });
+  addEventListener('wheel', takeControl, { once: true, passive: true });
+  addEventListener('touchstart', takeControl, { once: true, passive: true });
   document.addEventListener('pointermove', onPointer, { passive: true });
   resize();
   raf = requestAnimationFrame(tick);
@@ -443,6 +458,8 @@ export function mountCinema() {
     cancelAnimationFrame(raf);
     observer.disconnect();
     removeEventListener('resize', resize);
+    removeEventListener('wheel', takeControl);
+    removeEventListener('touchstart', takeControl);
     document.removeEventListener('pointermove', onPointer);
     document.body.classList.remove('cinema-ready');
     scenes.forEach((item) => {

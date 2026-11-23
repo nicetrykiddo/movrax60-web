@@ -6,6 +6,16 @@ import 'lenis/dist/lenis.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const entry = performance.getEntriesByType('navigation')[0] as
+  | PerformanceNavigationTiming
+  | undefined;
+if (entry?.type === 'navigate' && scrollY === 0 && location.hash) {
+  document.getElementById(location.hash.slice(1))?.scrollIntoView({
+    block: 'start',
+    behavior: 'instant',
+  });
+}
+
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const frameCount = 120;
 const wrapFrame = (value: number) =>
