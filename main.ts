@@ -58,6 +58,7 @@ function filmPlayer(ctx:CanvasRenderingContext2D) {
     image.src='/film/'+(portrait.matches?'tall':'wide')+'/'+String(index).padStart(3,'0')+'.webp';
     image.decode().then(()=>{
       if (!alive || run!==generation) return;
+      retryAt.delete(index);
       cache.set(index,image);
       for(const key of cache.keys()) {
         if (Math.abs(desired-key)>5 && !stills.includes(key)) cache.delete(key);
@@ -90,8 +91,10 @@ function filmPlayer(ctx:CanvasRenderingContext2D) {
   resize();
   return {
     seek(value:number) {
-      if(value!==desired) direction=value>desired?1:-1;
-      desired=Math.min(lastFrame, Math.max(0,value));
+      const clamped=Math.min(lastFrame, Math.max(0,value));
+      if(clamped===desired && !retryAt.size) return;
+      if(clamped!==desired) direction=clamped>desired?1:-1;
+      desired=clamped;
       paint();fill();
     },
     stop() {
