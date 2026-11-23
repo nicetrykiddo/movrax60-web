@@ -1,27 +1,28 @@
-# movrax60
+# movrax60 — The Relay
 
-An international cybersecurity capture the flag team. The homepage has eight scroll scenes, starting with a turnable enamel mascot and closing with contact. The separate members page has a deep link and a rendered nameplate for each player on the public roster.
+A CTF team site set in a hillside communications exchange. The public routes are `/` for the team, competition highlights and contact, and `/members/` for the interactive roster. Existing section and player anchors work directly.
 
 ## Run and deploy
 
-Use `npm ci` and `npm run dev` for local preview. Vercel builds both pages with `npm run build` and serves `dist/`. Run `npm test` to check the production build in Chrome.
+Run `npm ci` and `npm run dev`. Vercel uses `npm run build` and serves `dist/`. Run `npm test` to check both production routes in Chrome.
 
-Edit `records.json` to change roster details, competition highlights, or contact links. The Telegram, Discord, and email rows become links when their `url` is filled in. Both pages render the team information into HTML at build time.
+Edit `records.json` to update public profiles, competition results and contact links. Telegram, Discord and email become links when their `url` values are filled in. Hack The Box's placement remains labelled as player-reported.
 
-## Artwork and motion
+## Camera and interaction
 
-- `art/pin/original.png` is the mascot supplied by the team. Run `python art/pin/trace.py` to regenerate the die outline, enamel masks, and icon using Potrace, Pillow, SciPy and NumPy.
-- Run `blender -b --python-exit-code 1 -P art/pin/render.py` for 120 mascot views and `python art/pin/atlas.py` for the low-resolution orbit used during dragging. `PIN_FRAMES=0,60` renders a front and back preview.
-- Run `blender -b --python-exit-code 1 -P art/pin/scenes.py` to render the competition, roster entrance and contact shots. Set `SCENE_SHOTS` and `SCENE_FRAMES` to comma-separated shot IDs and frame indices for partial renders. Render individual nameplates with the player slug from the members page and frames 0 through 9.
-- `art/pin/surface.py` renders the technical knit backdrop. `python art/pin/ambient.py` makes the opt-in ambient audio with NumPy, SciPy and FFmpeg. Lighting and surface material sources used by the Blender scripts are listed in `art/library/sources.json`.
-- The same fixed canvas draws the entire workbench as the page scrolls. The camera travels between objects in Blender, while the headings, results and links stay in the document flow. Panorama and portrait each have their own path. Lightweight frame atlases play during motion. A larger exposure fades in at rest when it matches the current camera pose. A separate pass draws moving haze and depth-layered dust. Visitors using reduced motion or browsing without JavaScript see rendered stills with the same navigation and content.
+A single fixed stage plays four 30 fps H.264 clips according to scroll position. Wide assets are 1920×1080 and portrait assets are 1080×1440. The player keeps only nearby clips loaded, coalesces seeks and keeps the current decoded frame visible at each handoff. Native HTML holds the copy, links and sharp posters. Reduced motion keeps the posters and disables the moving stage. Rain and mist live on separate layers, and sound activates on request.
 
-Render the full scroll camera from the repository root. Use `JOURNEY_ROUTE=members` for the members page.
+The members page keeps the familiar profile anchors. Its engraved nameplates follow the current player on scroll. Visitors can also select a handle or move through the rack with the arrow keys.
+
+## Rebuild the film
+
+Run Blender and FFmpeg from the repository root. `RELAY_OUT` specifies the same frame directory for both steps, defaulting to `/tmp/relay-frames`.
 
 ```sh
-JOURNEY_STRIDE=4 blender -b --python-exit-code 1 -P art/pin/journey.py
-blender -b --python-exit-code 1 -P art/pin/journey.py
-python art/pin/journey_atlases.py --route home
+blender -b --python-exit-code 1 -P art/relay/render.py
+python art/relay/package.py
 ```
 
-Run both render passes for each route. The first pass renders anchor exposures at full resolution. The second fills in adjacent poses and preserves any finished exposures. The atlas packer uses Pillow, NumPy and OpenCV to build the preview strips and interpolate between rendered exposures. `JOURNEY_VIEWS` and `JOURNEY_SHOTS` narrow a render to selected orientations or chapters.
+For lighting proofs, set `RELAY_SHOTS=entrance`, `RELAY_VIEWS=wide` and `RELAY_FRAMES=0,36,75`. The render script projects the location plates into depth, adds the physically positioned glass and the traced mascot from `art/pin/enamel.json`, and animates the camera, practical light and mullion crossings. `python art/relay/fog.py` rebuilds the mist with Pillow, NumPy and SciPy.
+
+The source plates in `art/relay/plates/` were made with the built-in image generation tool. The prompts specified a rain-wet modern hillside exchange at golden dusk, a smoked-glass hall with overhead fiber bundles, an after-dark service corridor with amber reflections, and a night window over a misty valley. The portrait plates were reframed from the matching landscape plates. The mascot outline comes from the team's supplied artwork.
