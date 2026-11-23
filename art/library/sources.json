@@ -1,0 +1,562 @@
+[
+  {
+    "group": "hardware",
+    "id": "intermittent-motion",
+    "title": "Mécanisme du cinématographe des frères Lumière.gif",
+    "artist": "Starcheuch et Bernard de Go Mars",
+    "original_credit": "Our work",
+    "license": "CC BY-SA 3.0",
+    "terms": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:M%C3%A9canisme_du_cin%C3%A9matographe_des_fr%C3%A8res_Lumi%C3%A8re.gif",
+    "use": "Study the cycle of intermittent film advance and dwell.",
+    "changes": "Original file, unmodified.",
+    "files": [
+      {
+        "path": "hardware/intermittent-motion.gif",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/18/M%C3%A9canisme_du_cin%C3%A9matographe_des_fr%C3%A8res_Lumi%C3%A8re.gif?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+        "bytes": 446552,
+        "sha256": "1229c2ee5571e0e95eaf50092e1e80998d86721e7a4eb493dfc3553663a95588"
+      }
+    ]
+  },
+  {
+    "group": "materials",
+    "id": "metal_plate_02",
+    "title": "metal plate 02",
+    "artist": "Poly Haven",
+    "license": "CC0 1.0",
+    "terms": "https://polyhaven.com/license",
+    "source": "https://polyhaven.com/a/metal_plate_02",
+    "use": "Gate metal under a grazing edge light.",
+    "changes": "Original 1K maps, unmodified.",
+    "files": [
+      {
+        "path": "materials/metal_plate_02/diffuse.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate_02/metal_plate_02_diff_1k.jpg",
+        "bytes": 625917,
+        "sha256": "6e80877d0e9d5973d96298c6091df7ace906b0a6760afc4f3592e4855f3f1d4c"
+      },
+      {
+        "path": "materials/metal_plate_02/metal.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate_02/metal_plate_02_metal_1k.jpg",
+        "bytes": 551170,
+        "sha256": "fb1b120a2be5887dfeebed7a198a8151b292e963713d914b74ed7669434afb41"
+      },
+      {
+        "path": "materials/metal_plate_02/nor_gl.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate_02/metal_plate_02_nor_gl_1k.jpg",
+        "bytes": 183264,
+        "sha256": "58736fbb8aa4fc6690cf8152b174db65caf22a766375b625fb0087e1bc955bc7"
+      },
+      {
+        "path": "materials/metal_plate_02/rough.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/metal_plate_02/metal_plate_02_rough_1k.jpg",
+        "bytes": 911772,
+        "sha256": "73a6bd6393f6de7be42058584c2d382f2a3e9148ceabc2d02e748e2c860e74d1"
+      }
+    ]
+  },
+  {
+    "group": "materials",
+    "id": "rusty_painted_metal",
+    "title": "rusty painted metal",
+    "artist": "Poly Haven",
+    "license": "CC0 1.0",
+    "terms": "https://polyhaven.com/license",
+    "source": "https://polyhaven.com/a/rusty_painted_metal",
+    "use": "Chipped finish on the housing.",
+    "changes": "Original 1K maps, unmodified.",
+    "files": [
+      {
+        "path": "materials/rusty_painted_metal/diffuse.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_painted_metal/rusty_painted_metal_diff_1k.jpg",
+        "bytes": 471866,
+        "sha256": "b086937b45c3628116a838363364a29bd3c5d2542cff906ec1d92d681ee80e15"
+      },
+      {
+        "path": "materials/rusty_painted_metal/nor_gl.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_painted_metal/rusty_painted_metal_nor_gl_1k.jpg",
+        "bytes": 484158,
+        "sha256": "f3372e2f60517df2d0e02c1472eb24071d95182d771c30b7ecd8e1b5142768bb"
+      },
+      {
+        "path": "materials/rusty_painted_metal/rough.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_painted_metal/rusty_painted_metal_rough_1k.jpg",
+        "bytes": 318766,
+        "sha256": "2d1c355c793c5886ef9dcecfc06da354e30218a84a9fe28de37741d2f2ed5aaa"
+      }
+    ]
+  },
+  {
+    "group": "materials",
+    "id": "grey_plaster_02",
+    "title": "grey plaster 02",
+    "artist": "Poly Haven",
+    "license": "CC0 1.0",
+    "terms": "https://polyhaven.com/license",
+    "source": "https://polyhaven.com/a/grey_plaster_02",
+    "use": "Wall surface beneath projected lettering.",
+    "changes": "Original 1K maps, unmodified.",
+    "files": [
+      {
+        "path": "materials/grey_plaster_02/diffuse.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_plaster_02/grey_plaster_02_diff_1k.jpg",
+        "bytes": 772312,
+        "sha256": "c455b6513a37908480eedd59f697719649aca97d3c76525718a77d7d600e2d22"
+      },
+      {
+        "path": "materials/grey_plaster_02/nor_gl.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_plaster_02/grey_plaster_02_nor_gl_1k.jpg",
+        "bytes": 636432,
+        "sha256": "f827876a78beebdbfca173ded1cd448117b433a0f9772a7c866bca91cb27884a"
+      },
+      {
+        "path": "materials/grey_plaster_02/rough.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/grey_plaster_02/grey_plaster_02_rough_1k.jpg",
+        "bytes": 626062,
+        "sha256": "bc72ae4ba0d4330af80bc140dab4e3d97f850b9e545b36d21ccb9d9ffa5ef420"
+      }
+    ]
+  },
+  {
+    "group": "materials",
+    "id": "brown_leather",
+    "title": "brown leather",
+    "artist": "Poly Haven",
+    "license": "CC0 1.0",
+    "terms": "https://polyhaven.com/license",
+    "source": "https://polyhaven.com/a/brown_leather",
+    "use": "Handle and edge trim.",
+    "changes": "Original 1K maps, unmodified.",
+    "files": [
+      {
+        "path": "materials/brown_leather/diffuse.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/brown_leather/brown_leather_albedo_1k.jpg",
+        "bytes": 503348,
+        "sha256": "7e9e1d6566d1fd91d4ceb4966c4820361e85d53a7a828b6bab3b2a093a876cd1"
+      },
+      {
+        "path": "materials/brown_leather/nor_gl.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/brown_leather/brown_leather_nor_gl_1k.jpg",
+        "bytes": 863280,
+        "sha256": "506a0b7650c2dea285e247f26ed2d0d6ec38fc10dd584359f0d203e9c082236d"
+      },
+      {
+        "path": "materials/brown_leather/rough.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/brown_leather/brown_leather_rough_1k.jpg",
+        "bytes": 686142,
+        "sha256": "f9739ef2da2e3d17b9ec253f5042f61b10dc10f3ae28f6cf6491650d3d1b0ca3"
+      }
+    ]
+  },
+  {
+    "group": "materials",
+    "id": "rubber_tiles",
+    "title": "rubber tiles",
+    "artist": "Poly Haven",
+    "license": "CC0 1.0",
+    "terms": "https://polyhaven.com/license",
+    "source": "https://polyhaven.com/a/rubber_tiles",
+    "use": "Fine surface texture on a roller.",
+    "changes": "Original 1K maps, unmodified.",
+    "files": [
+      {
+        "path": "materials/rubber_tiles/diffuse.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rubber_tiles/rubber_tiles_diff_1k.jpg",
+        "bytes": 351085,
+        "sha256": "07c66caf17f14b1eae8a60bfd11a3b00a88af0101d51aab370609a2f13bb8c04"
+      },
+      {
+        "path": "materials/rubber_tiles/nor_gl.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rubber_tiles/rubber_tiles_nor_gl_1k.jpg",
+        "bytes": 477716,
+        "sha256": "9d030b6b52c039af437e5bd58590bf0b8abfbead85c02567211a341d292e5aa5"
+      },
+      {
+        "path": "materials/rubber_tiles/rough.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rubber_tiles/rubber_tiles_rough_1k.jpg",
+        "bytes": 590975,
+        "sha256": "a5b1f7f48bcb1d7d4d6ac87e19a0566a58b097e29292704649c46da60dc207a4"
+      }
+    ]
+  },
+  {
+    "group": "lighting",
+    "id": "studio_small_09",
+    "title": "studio small 09",
+    "artist": "Poly Haven",
+    "license": "CC0 1.0",
+    "terms": "https://polyhaven.com/license",
+    "source": "https://polyhaven.com/a/studio_small_09",
+    "use": "Controlled reflections on the shutter blades.",
+    "changes": "Original 1K maps, unmodified.",
+    "files": [
+      {
+        "path": "lighting/studio_small_09/hdri.hdr",
+        "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_09_1k.hdr",
+        "bytes": 1615248,
+        "sha256": "e7cfda5f4e98e623db12b8bfd0184e048488e4855d9c83e2751fb44a32e80c45"
+      }
+    ]
+  },
+  {
+    "group": "lighting",
+    "id": "small_workshop",
+    "title": "small workshop",
+    "artist": "Poly Haven",
+    "license": "CC0 1.0",
+    "terms": "https://polyhaven.com/license",
+    "source": "https://polyhaven.com/a/small_workshop",
+    "use": "Ambient fill for the projection room.",
+    "changes": "Original 1K maps, unmodified.",
+    "files": [
+      {
+        "path": "lighting/small_workshop/hdri.hdr",
+        "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/small_workshop_1k.hdr",
+        "bytes": 1728826,
+        "sha256": "6693c278f2904a3f450ee431725c605c05d575670307da187cd825e21c13e4c0"
+      }
+    ]
+  },
+  {
+    "group": "hardware",
+    "id": "plate-42",
+    "title": "Triple lantern",
+    "artist": "American School / David S. Hulfish",
+    "license": "US public domain · published 1911",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://archive.org/details/cyclopediaofmoti01amer",
+    "use": "Match the three lens barrels and their spacing.",
+    "changes": "Full scan of PDF page 42, rendered to JPEG. Source volume: Cyclopedia of Motion-Picture Work, vol. 1.",
+    "files": [
+      {
+        "path": "hardware/plate-42.jpg",
+        "url": "https://archive.org/download/cyclopediaofmoti01amer/cyclopediaofmoti01amer.pdf#page=42",
+        "bytes": 179974,
+        "sha256": "359b97937f9ce574a441439ab87768f99b9878cfccbefc81f2aa57c3e02054f5"
+      }
+    ]
+  },
+  {
+    "group": "hardware",
+    "id": "plate-172",
+    "title": "Film winder",
+    "artist": "American School / David S. Hulfish",
+    "license": "US public domain · published 1911",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://archive.org/details/cyclopediaofmoti01amer",
+    "use": "Reference the crank and spool silhouettes.",
+    "changes": "Full scan of PDF page 172, rendered to JPEG. Source volume: Cyclopedia of Motion-Picture Work, vol. 1.",
+    "files": [
+      {
+        "path": "hardware/plate-172.jpg",
+        "url": "https://archive.org/download/cyclopediaofmoti01amer/cyclopediaofmoti01amer.pdf#page=172",
+        "bytes": 201815,
+        "sha256": "faeffdc738cf7e2e40bb63b13d8ba2db5da42f5c7d50828b946d46773cb96eb2"
+      }
+    ]
+  },
+  {
+    "group": "hardware",
+    "id": "plate-197",
+    "title": "Sectional shutter",
+    "artist": "American School / David S. Hulfish",
+    "license": "US public domain · published 1911",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://archive.org/details/cyclopediaofmoti01amer",
+    "use": "Study when the shutter blade eclipses the aperture.",
+    "changes": "Full scan of PDF page 197, rendered to JPEG. Source volume: Cyclopedia of Motion-Picture Work, vol. 1.",
+    "files": [
+      {
+        "path": "hardware/plate-197.jpg",
+        "url": "https://archive.org/download/cyclopediaofmoti01amer/cyclopediaofmoti01amer.pdf#page=197",
+        "bytes": 178932,
+        "sha256": "bf408a697d08eefb14dead52ef8bed04395e3d8db9278fbb0820fd479fe48f98"
+      }
+    ]
+  },
+  {
+    "group": "hardware",
+    "id": "plate-207",
+    "title": "Motion head parts",
+    "artist": "American School / David S. Hulfish",
+    "license": "US public domain · published 1911",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://archive.org/details/cyclopediaofmoti01amer",
+    "use": "Use the exploded parts as scale references.",
+    "changes": "Full scan of PDF page 207, rendered to JPEG. Source volume: Cyclopedia of Motion-Picture Work, vol. 1.",
+    "files": [
+      {
+        "path": "hardware/plate-207.jpg",
+        "url": "https://archive.org/download/cyclopediaofmoti01amer/cyclopediaofmoti01amer.pdf#page=207",
+        "bytes": 150144,
+        "sha256": "4d5da35b5abce7108ef424c51bc7fab51e66675fee8f9b1216eb31bd7982c2ee"
+      }
+    ]
+  },
+  {
+    "group": "hardware",
+    "id": "plate-211",
+    "title": "Arc lamp parts",
+    "artist": "American School / David S. Hulfish",
+    "license": "US public domain · published 1911",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://archive.org/details/cyclopediaofmoti01amer",
+    "use": "Reference the lamp assembly and fasteners.",
+    "changes": "Full scan of PDF page 211, rendered to JPEG. Source volume: Cyclopedia of Motion-Picture Work, vol. 1.",
+    "files": [
+      {
+        "path": "hardware/plate-211.jpg",
+        "url": "https://archive.org/download/cyclopediaofmoti01amer/cyclopediaofmoti01amer.pdf#page=211",
+        "bytes": 156446,
+        "sha256": "12a5b79132a39b52b5a838c7e6128c1311f11253299a99a9f9ba17101cc28c88"
+      }
+    ]
+  },
+  {
+    "group": "hardware",
+    "id": "plate-216",
+    "title": "Lamp house",
+    "artist": "American School / David S. Hulfish",
+    "license": "US public domain · published 1911",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://archive.org/details/cyclopediaofmoti01amer",
+    "use": "Shape the exterior ventilation slots and door.",
+    "changes": "Full scan of PDF page 216, rendered to JPEG. Source volume: Cyclopedia of Motion-Picture Work, vol. 1.",
+    "files": [
+      {
+        "path": "hardware/plate-216.jpg",
+        "url": "https://archive.org/download/cyclopediaofmoti01amer/cyclopediaofmoti01amer.pdf#page=216",
+        "bytes": 148143,
+        "sha256": "f810bfd73fe0fa0d4626e4a134d22d15f5cf9d29d1f80bf1a7d45d58421f0808"
+      }
+    ]
+  },
+  {
+    "group": "hardware",
+    "id": "plate-225",
+    "title": "Intermittent movement",
+    "artist": "American School / David S. Hulfish",
+    "license": "US public domain · published 1911",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://archive.org/details/cyclopediaofmoti01amer",
+    "use": "Reference the way a rotating drive advances a film strip in steps.",
+    "changes": "Full scan of PDF page 225, rendered to JPEG. Source volume: Cyclopedia of Motion-Picture Work, vol. 1.",
+    "files": [
+      {
+        "path": "hardware/plate-225.jpg",
+        "url": "https://archive.org/download/cyclopediaofmoti01amer/cyclopediaofmoti01amer.pdf#page=225",
+        "bytes": 170499,
+        "sha256": "5311314efba1b7ab4b5246743fa886e78c8ed75fa359fdf2917b00752d1f5125"
+      }
+    ]
+  },
+  {
+    "group": "hardware",
+    "id": "plate-235",
+    "title": "Pathé magazines",
+    "artist": "American School / David S. Hulfish",
+    "license": "US public domain · published 1911",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://archive.org/details/cyclopediaofmoti01amer",
+    "use": "Study the proportions of feed and take-up magazines.",
+    "changes": "Full scan of PDF page 235, rendered to JPEG. Source volume: Cyclopedia of Motion-Picture Work, vol. 1.",
+    "files": [
+      {
+        "path": "hardware/plate-235.jpg",
+        "url": "https://archive.org/download/cyclopediaofmoti01amer/cyclopediaofmoti01amer.pdf#page=235",
+        "bytes": 121921,
+        "sha256": "c2963b831342d20ba9cbb7ca05d9070d433f9252f8d29b6a122e0388b2bfb917"
+      }
+    ]
+  },
+  {
+    "group": "hardware",
+    "id": "plate-238",
+    "title": "Film rewinder",
+    "artist": "American School / David S. Hulfish",
+    "license": "US public domain · published 1911",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://archive.org/details/cyclopediaofmoti01amer",
+    "use": "Trace the threading path across the rewinder.",
+    "changes": "Full scan of PDF page 238, rendered to JPEG. Source volume: Cyclopedia of Motion-Picture Work, vol. 1.",
+    "files": [
+      {
+        "path": "hardware/plate-238.jpg",
+        "url": "https://archive.org/download/cyclopediaofmoti01amer/cyclopediaofmoti01amer.pdf#page=238",
+        "bytes": 194241,
+        "sha256": "18016d65e4c930235b83516e766c1117d3615217c0b0afa2bf0f0b782d71a926"
+      }
+    ]
+  },
+  {
+    "group": "hardware",
+    "id": "plate-244",
+    "title": "Standard motion head",
+    "artist": "American School / David S. Hulfish",
+    "license": "US public domain · published 1911",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://archive.org/details/cyclopediaofmoti01amer",
+    "use": "Use the drive train as the silhouette in the blade wipe.",
+    "changes": "Full scan of PDF page 244, rendered to JPEG. Source volume: Cyclopedia of Motion-Picture Work, vol. 1.",
+    "files": [
+      {
+        "path": "hardware/plate-244.jpg",
+        "url": "https://archive.org/download/cyclopediaofmoti01amer/cyclopediaofmoti01amer.pdf#page=244",
+        "bytes": 125382,
+        "sha256": "453a93b414c5fcc5efafe13f21722f96cb686da7006ac5892b12ce0f912ef537"
+      }
+    ]
+  },
+  {
+    "group": "drawings",
+    "id": "US493426A",
+    "title": "Early moving-picture viewer",
+    "artist": "Thomas A. Edison",
+    "license": "US public domain · published in the 1890s",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://patents.google.com/patent/US493426A/en",
+    "use": "Consult original optical and film-transport drawings.",
+    "changes": "Unmodified historical patent PDF.",
+    "files": [
+      {
+        "path": "hardware/US493426A.pdf",
+        "url": "https://patentimages.storage.googleapis.com/8f/69/5d/38487aa79c106e/US493426.pdf",
+        "bytes": 474172,
+        "sha256": "2da50daea35ab8587128a5f142d23dcc6d175cf3f8a30861efe7e0cd1ca3ac9a"
+      }
+    ]
+  },
+  {
+    "group": "drawings",
+    "id": "US589168A",
+    "title": "Kinetographic camera",
+    "artist": "Thomas A. Edison",
+    "license": "US public domain · published in the 1890s",
+    "terms": "https://guides.library.cornell.edu/copyright/publicdomain",
+    "source": "https://patents.google.com/patent/US589168A/en",
+    "use": "Consult original optical and film-transport drawings.",
+    "changes": "Unmodified historical patent PDF.",
+    "files": [
+      {
+        "path": "hardware/US589168A.pdf",
+        "url": "https://patentimages.storage.googleapis.com/28/6f/bb/1601e20749a8cb/US589168.pdf",
+        "bytes": 514218,
+        "sha256": "1970ee23a4cd116bfaaabf023725f189d5f7a6f027aa54a07ca1f97c979e72ab"
+      }
+    ]
+  },
+  {
+    "group": "sound",
+    "id": "cinema-projector",
+    "title": "cinema projector recording",
+    "artist": "Dr. Macak",
+    "license": "CC0 1.0",
+    "terms": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "source": "https://freesound.org/people/Dr.%20Macak/sounds/253758/",
+    "use": "Audition for the motor cadence and noise floor.",
+    "changes": "Unmodified Freesound-hosted HQ MP3 preview, 25.2 seconds.",
+    "files": [
+      {
+        "path": "sound/cinema-projector.mp3",
+        "url": "https://cdn.freesound.org/previews/253/253758_1848520-hq.mp3",
+        "bytes": 685776,
+        "sha256": "f58832b8273a5e8eb133c2f29b45213b4eb9ac134a2a9b37a747cd09641ca250"
+      }
+    ]
+  },
+  {
+    "group": "sound",
+    "id": "eight-mm",
+    "title": "eight mm recording",
+    "artist": "videofueralle",
+    "license": "CC0 1.0",
+    "terms": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "source": "https://freesound.org/people/videofueralle/sounds/241886/",
+    "use": "Audition for the motor cadence and noise floor.",
+    "changes": "Unmodified Freesound-hosted HQ MP3 preview, 161.5 seconds.",
+    "files": [
+      {
+        "path": "sound/eight-mm.mp3",
+        "url": "https://cdn.freesound.org/previews/241/241886_1130120-hq.mp3",
+        "bytes": 3052128,
+        "sha256": "c8193f914a53bd5f11973507bf0ac9e7e2e972c39d3a0dd14c3431cf2c198825"
+      }
+    ]
+  },
+  {
+    "group": "surface",
+    "id": "Fingerprints009",
+    "title": "Fingerprints 009",
+    "artist": "ambientCG",
+    "license": "CC0 1.0",
+    "terms": "https://docs.ambientcg.com/license/",
+    "source": "https://ambientcg.com/view?id=Fingerprints009",
+    "use": "Place one subdued fingerprint at the lens rim.",
+    "changes": "Unmodified image maps extracted from the source ZIP.",
+    "files": [
+      {
+        "path": "surface/Fingerprints009/Fingerprints009_1K-JPG_Color.jpg",
+        "url": "https://ambientcg.com/get?file=Fingerprints009_1K-JPG.zip",
+        "bytes": 627791,
+        "sha256": "d6808a48db9dc0e533692bf2d255b9fcae4e1e4e5f72458d857d316400e991fd"
+      },
+      {
+        "path": "surface/Fingerprints009/Fingerprints009_1K-JPG_Opacity.jpg",
+        "url": "https://ambientcg.com/get?file=Fingerprints009_1K-JPG.zip",
+        "bytes": 630011,
+        "sha256": "49063011fca6bc0a342dd483ea3992becb6b7f0f399ac84743a01ebfa87e359e"
+      }
+    ]
+  },
+  {
+    "group": "surface",
+    "id": "Scratches005",
+    "title": "Scratches 005",
+    "artist": "ambientCG",
+    "license": "CC0 1.0",
+    "terms": "https://docs.ambientcg.com/license/",
+    "source": "https://ambientcg.com/view?id=Scratches005",
+    "use": "Break up polished black metal in the raking close-up.",
+    "changes": "Unmodified image maps extracted from the source ZIP.",
+    "files": [
+      {
+        "path": "surface/Scratches005/Scratches005_1K-JPG_Color.jpg",
+        "url": "https://ambientcg.com/get?file=Scratches005_1K-JPG.zip",
+        "bytes": 697068,
+        "sha256": "fddafa55d0a7a46b8061b6dd7ec28e57263b20924e6c6b9fe49c394a3df8c92a"
+      },
+      {
+        "path": "surface/Scratches005/Scratches005_1K-JPG_Opacity.jpg",
+        "url": "https://ambientcg.com/get?file=Scratches005_1K-JPG.zip",
+        "bytes": 697068,
+        "sha256": "fddafa55d0a7a46b8061b6dd7ec28e57263b20924e6c6b9fe49c394a3df8c92a"
+      }
+    ]
+  },
+  {
+    "group": "surface",
+    "id": "SurfaceImperfections015",
+    "title": "Surface Imperfections 015",
+    "artist": "ambientCG",
+    "license": "CC0 1.0",
+    "terms": "https://docs.ambientcg.com/license/",
+    "source": "https://ambientcg.com/view?id=SurfaceImperfections015",
+    "use": "Modulate glass roughness across the rim of the film gate.",
+    "changes": "Unmodified image maps extracted from the source ZIP.",
+    "files": [
+      {
+        "path": "surface/SurfaceImperfections015/SurfaceImperfections015_1K-JPG_Color.jpg",
+        "url": "https://ambientcg.com/get?file=SurfaceImperfections015_1K-JPG.zip",
+        "bytes": 1195917,
+        "sha256": "f515b7e050415edb59e51bd1c0331b8dd8acfbf1a2b321d64aa466fa8cc087a3"
+      },
+      {
+        "path": "surface/SurfaceImperfections015/SurfaceImperfections015_1K-JPG_Opacity.jpg",
+        "url": "https://ambientcg.com/get?file=SurfaceImperfections015_1K-JPG.zip",
+        "bytes": 896781,
+        "sha256": "3ebc93aa0c870c3203a8a63b81d1ec873b0a31001edc8857d2e75515b4ccc5e9"
+      }
+    ]
+  }
+]
