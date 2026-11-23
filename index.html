@@ -1,22 +1,47 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#111115"><meta name="description" content="movrax60 is an international capture the flag team. Meet the players and explore our competition highlight.">
-<title>movrax60 — International CTF team</title><link rel="icon" href="/mark.svg">
-<link rel="stylesheet" href="/style.css">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#100f0b">
+  <meta name="description" content="movrax60 is an international capture the flag team. Meet eight players through The Last Exposure, a scroll film.">
+  <title>movrax60 — The Last Exposure</title>
+  <link rel="icon" href="/mark.svg"><link rel="stylesheet" href="/style.css">
 </head>
 <body id="top">
 <a class="skip" href="#main">Skip to content</a>
-<header class="wrap"><a class="logo" href="#top"><img src="/mark.svg" alt=""> movrax60</a>
-<nav aria-label="Main navigation"><a href="#team">Roster</a><a href="#results">Highlight</a><a class="external" href="https://ctftime.org/team/421037">CTFtime ↗</a></nav></header>
-<main id="main" class="wrap story">
-<div class="studio" aria-hidden="true"><div class="glow"></div><div class="object"><img src="/fold.webp" alt="" fetchpriority="high" width="960" height="960"><canvas width="720" height="720"></canvas></div><div class="shadow"></div></div>
-<section class="opening" aria-labelledby="identity"><p class="kicker"><span class="spark">✳</span> International CTF team</p>
-<h1 id="identity">movrax<span>60</span></h1>
-<p class="lede">Eight players competing together in cybersecurity capture the flag events around the world.</p>
-<a class="jump" href="#team">Meet the team <span aria-hidden="true">↓</span></a></section>
-<section id="results" class="chapter"><p class="kicker">Competition highlight</p><!-- highlight --><a class="source" href="https://ctftime.org/team/421037">Competition history on CTFtime ↗</a></section>
-<section id="team" class="chapter"><p class="kicker">The collective</p><h2>Team roster<span>.</span></h2><p class="muted">{{members}} members · Public profiles</p><ul class="roster"><!-- roster --></ul></section>
-</main><footer class="wrap"><a class="logo" href="#top">movrax60</a><a href="#top">Back to top ↑</a></footer>
-<script type="module" src="/main.ts"></script></body></html>
+<div class="screen" aria-hidden="true">
+  <picture><source media="(max-aspect-ratio:1/1)" srcset="/film/tall/000.webp"><img src="/film/wide/000.webp" alt="" fetchpriority="high"></picture>
+  <canvas width="1440" height="864"></canvas>
+</div>
+<header>
+  <a class="brand" href="#top" aria-label="movrax60 home"><img src="/mark.svg" alt="">movrax60</a>
+  <nav aria-label="Film chapters"><a href="#team">Team</a><a href="#results">Result</a></nav>
+  <button class="sound" hidden aria-pressed="false" aria-label="Sound off"><i aria-hidden="true"><b></b><b></b><b></b><b></b></i><span>Sound off</span></button>
+</header>
+<main id="main">
+  <section class="chapter opening" id="exposure" aria-labelledby="identity">
+    <div class="copy">
+      <p class="label"><i></i> The last exposure</p>
+      <h1 id="identity">movrax<span>60</span></h1>
+      <p class="lede">An international capture the flag team.</p>
+      <a class="continue" href="#team">Meet the team <span aria-hidden="true">↓</span></a>
+    </div>
+  </section>
+  <section class="chapter team" id="team" aria-labelledby="roster">
+    <div class="copy">
+      <p class="label"><i></i> Film transport</p>
+      <h2 id="roster">The team<span>.</span></h2>
+      <ul class="roster"><!-- roster --></ul>
+    </div>
+  </section>
+  <section class="chapter result" id="results" aria-labelledby="event">
+    <div class="copy">
+      <p class="label"><i></i> Competition highlight</p>
+      <!-- highlight -->
+      <div class="links"><a class="continue" href="https://ctftime.org/team/421037">Team on CTFtime ↗</a><a href="#top">Replay ↑</a></div>
+    </div>
+  </section>
+</main>
+<div class="film-edge" aria-hidden="true"><span id="shot-name">Projection</span><span class="perfs"></span><span>The last exposure</span></div>
+<script type="module" src="/main.ts"></script>
+</body></html>
