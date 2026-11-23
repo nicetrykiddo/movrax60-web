@@ -349,7 +349,7 @@ def pose(f,portrait):
             ob.rotation_euler.y=math.sin(a+.65)*shift*.24
         pos=lerp((GX-3.35,-5.2,3.5),(GX,-9.1 if portrait else -8.3,2.42),t)
         aim=lerp((GX-.44,0,2.4),(GX if portrait else GX-.72,0,2.08),t)
-        camera(pos,aim,30 if portrait else 36,(GX,-.2,2.4))
+        camera(pos,aim,23.5 if portrait else 36,(GX,-.2,2.4))
     cam.data.shift_y=(.085 if portrait else .02)*-1 if f<40 else (-.10 if portrait else 0)
 
 keys=[0,62,127,20,35,39,40,50,74,83,84,96,112]
