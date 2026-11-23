@@ -1,6 +1,6 @@
 # movrax60 — The Last Exposure
 
-A scroll-controlled short film introduces the international CTF team. A practical projector, eight moving film strips and a backlit registration gate form three connected Blender Cycles shots. The eight printed separations align into the lowercase team mark. The roster and the team's featured finish are real HTML links rendered from `records.json`.
+A scroll-controlled short film introduces the international CTF team. A vintage film projector, eight moving film strips and a backlit registration gate form three connected Blender Cycles shots. The eight printed separations align into the lowercase team mark. The roster and the team's featured finish are real HTML links rendered from `records.json`.
 
 ## Run and deploy
 
@@ -8,7 +8,7 @@ Run `npm ci` and `npm run dev`. Production uses `npm run build` and the `dist/` 
 
 ## Motion and sound
 
-The two camera compositions each have 128 frames. A three-request window loads around the current scroll position. Adjacent frames blend during slow scrolling, and a damped spring settles the playhead. The wheel uses Lenis and ScrollTrigger; touch scrolling remains native. With reduced motion or JavaScript disabled, each chapter uses its own still. The projector recording and original tonal score load after the sound control is pressed.
+The two camera compositions each have 128 main frames plus 39 intermediate exposures for the moving projector. A three-request window loads around the current scroll position. The opening dolly uses native intermediate renders to keep the lens and moving spokes crisp. The two later shots blend adjacent frames during slow scrolling. A damped spring settles the playhead. The wheel uses Lenis and ScrollTrigger; touch scrolling remains native. With reduced motion or JavaScript disabled, each chapter uses its own still. The projector recording and original tonal score load after the sound control is pressed.
 
 ## Artwork
 
