@@ -287,7 +287,21 @@ h2 span {
   inset: 0;
   width: 100%;
   height: 100%;
-  filter: drop-shadow(1.3vw 2.4vw 1.1vw #050604ab);
+}
+.pin-position {
+  opacity: var(--pin-visibility, 1);
+}
+.pin-position::before {
+  content: '';
+  position: absolute;
+  inset: 19% 1% 5% 10%;
+  background: radial-gradient(
+    ellipse,
+    #030606a6 13%,
+    #03060655 49%,
+    transparent 73%
+  );
+  transform: translate(2%, 8%);
 }
 .pin-ready #pin {
   opacity: 0;
@@ -969,10 +983,19 @@ footer .text-link {
   visibility: hidden;
 }
 .cinema-ready header {
+  background: transparent;
+  isolation: isolate;
+}
+.cinema-ready header::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 -35px;
+  pointer-events: none;
   background: linear-gradient(
     180deg,
-    #090f10ee 0%,
-    #090f109e 43%,
+    #090f10f5 0px,
+    #090f10d4 43px,
     #090f1000 100%
   );
 }

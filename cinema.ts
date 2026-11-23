@@ -288,11 +288,11 @@ export function mountCinema() {
     const isOpening = cut.from.name === 'opening';
     const atlas = asset(url + 'preview.webp');
     const settled = now - lastScroll > 140 && Math.abs(y - scrollY) < 2;
-    // Settle on the closest native exposure. Motion frames are already in the atlas.
-    const still = frame === cut.count - 1 ? frame : Math.floor(frame / 2) * 2;
-    if (!isOpening && settled) load(url + filename(still), 'high');
-    const exact =
-      (!isOpening && settled && asset(url + filename(still))) || undefined;
+    // Upgrade the same pose when there is a native exposure for it.
+    const still =
+      !isOpening && settled && (frame % 2 === 0 || frame === cut.count - 1);
+    if (still) load(url + filename(frame), 'high');
+    const exact = (still && asset(url + filename(frame))) || undefined;
     if (lastCut !== url + frame) {
       lastCut = url + frame;
       highSince = now;

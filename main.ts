@@ -21,7 +21,7 @@ function mountPin(
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
   if (!context) return;
-  canvas.width = canvas.height = 960;
+  canvas.width = canvas.height = 576;
   canvas.setAttribute('aria-hidden', 'true');
   pin.after(canvas);
   pin.dataset.frame = '0';
@@ -77,6 +77,8 @@ function mountPin(
     const key = `${painted}/${useAtlas}`;
     if (key === currentPaint) return;
     currentPaint = key;
+    const resolution = still ? 960 : 576;
+    if (canvas.width !== resolution) canvas.width = canvas.height = resolution;
     context!.clearRect(0, 0, canvas.width, canvas.height);
     if (still) {
       context!.drawImage(still, 0, 0);
@@ -103,7 +105,7 @@ function mountPin(
     frameRequest = 0;
     const diff = target - position;
     if (flip && !reduced.matches) {
-      const t = Math.min(1, (now - flip.start) / 850);
+      const t = Math.min(1, (now - flip.start) / 910);
       const turn = t * t * (3 - 2 * t);
       position = flip.from + (target - flip.from) * turn;
       if (t === 1) flip = undefined;
@@ -182,6 +184,10 @@ function mountPin(
     );
     runway.style.setProperty('--pin-y', `${(mobile ? 31 : 45) - 7 * t}%`);
     runway.style.setProperty('--pin-scale', String(1 + 0.13 * t));
+    const fade = gsap.parseEase('power2.out')(
+      Math.max(0, (progress - 0.45) / 0.55),
+    );
+    runway.style.setProperty('--pin-visibility', String(1 - fade));
     scrollAngle = -30 * t;
     turn(manual + scrollAngle);
   }
@@ -203,7 +209,12 @@ function mountPin(
     return () => {
       trigger.kill();
       compact.removeEventListener('change', resize);
-      for (const prop of ['--pin-x', '--pin-y', '--pin-scale'])
+      for (const prop of [
+        '--pin-x',
+        '--pin-y',
+        '--pin-scale',
+        '--pin-visibility',
+      ])
         runway.style.removeProperty(prop);
       scrollAngle = 0;
       turn(manual);

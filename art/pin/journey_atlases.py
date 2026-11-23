@@ -33,7 +33,7 @@ def bridge(first, second, steps):
 
 for route in root.glob(args.route or '*'):
     for view in route.glob('*'):
-        tile = (384, 247) if view.name=='wide' else (300, 400)
+        tile = (408, 262) if view.name=='wide' else (300, 400)
         for sequence in sorted(view.iterdir()):
             candidates = sorted(sequence.glob('[0-9][0-9][0-9].webp'))
             total = 34 if sequence.name.endswith('-to') else 54
