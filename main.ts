@@ -44,6 +44,7 @@ function mountPin(
   let scrollProgress = 0;
   let currentPaint = '';
   let frameRequest = 0;
+  let flip: { start: number; from: number } | undefined;
   let pointer:
     | { id: number; x: number; start: number; moved: boolean }
     | undefined;
@@ -98,17 +99,23 @@ function mountPin(
     pin.dataset.frame = String(painted);
   }
 
-  function tick() {
+  function tick(now: number) {
     frameRequest = 0;
     const diff = target - position;
-    if (Math.abs(diff) < 0.45 || reduced.matches) position = target;
-    else position += diff * 0.14;
+    if (flip && !reduced.matches) {
+      const t = Math.min(1, (now - flip.start) / 850);
+      const turn = t * t * (3 - 2 * t);
+      position = flip.from + (target - flip.from) * turn;
+      if (t === 1) flip = undefined;
+    } else if (Math.abs(diff) < 0.45 || reduced.matches) {
+      position = target;
+    } else {
+      position += diff * 0.16;
+    }
     render();
-    if (pending.size < 3) {
-      for (const index of [position, position + direction * 2, target]) {
-        if (pending.size >= 3) break;
-        loadFrame(wrapFrame(index));
-      }
+    if (position === target) loadFrame(wrapFrame(target));
+    else if (!atlas.complete && !reduced.matches && pending.size < 2) {
+      loadFrame(wrapFrame(position + direction * 2));
     }
     if (position !== target) frameRequest = requestAnimationFrame(tick);
   }
@@ -131,11 +138,13 @@ function mountPin(
       })
       .catch(() => {});
   control.addEventListener('click', () => {
+    if (!reduced.matches) flip = { start: performance.now(), from: position };
     manual += frameCount / 2;
     turn(manual + scrollAngle);
   });
   hit.addEventListener('pointerdown', (event) => {
     if (!event.isPrimary || event.button !== 0) return;
+    flip = undefined;
     pointer = {
       id: event.pointerId,
       x: event.clientX,
