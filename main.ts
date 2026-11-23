@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
+import { mountCinema } from './cinema';
 import 'lenis/dist/lenis.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -68,7 +69,7 @@ function mountPin(
   function render() {
     const exact = wrapFrame(position);
     const still = cache.get(exact);
-    const preview = wrapFrame(Math.round(position / 4) * 4);
+    const preview = exact;
     const painted = still ? exact : preview;
     const useAtlas = Boolean(!still && atlas.complete && atlas.naturalWidth);
     if (!still && !useAtlas) return;
@@ -79,12 +80,12 @@ function mountPin(
     if (still) {
       context!.drawImage(still, 0, 0);
     } else {
-      const tile = 384;
-      const index = preview / 4;
+      const tile = 288;
+      const index = preview;
       context!.drawImage(
         atlas,
-        (index % 6) * tile,
-        Math.floor(index / 6) * tile,
+        (index % 12) * tile,
+        Math.floor(index / 12) * tile,
         tile,
         tile,
         0,
@@ -122,6 +123,13 @@ function mountPin(
   }
 
   atlas.addEventListener('load', render);
+  if (!reduced.matches)
+    pin
+      .decode()
+      .then(() => {
+        if (!atlas.src) atlas.src = '/pin/orbit.webp';
+      })
+      .catch(() => {});
   control.addEventListener('click', () => {
     manual += frameCount / 2;
     turn(manual + scrollAngle);
@@ -211,191 +219,12 @@ gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
     autoRaf: true,
   });
   lenis.on('scroll', ScrollTrigger.update);
-  const shots = gsap.utils.toArray<HTMLElement>('.scene-art');
-  const stopShots = shots.map(mountShot);
-  const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
-  let reflectedArt: HTMLElement | null = null;
-  function reflect(event: PointerEvent) {
-    if (!finePointer.matches || event.pointerType === 'touch') return;
-    const next =
-      (event.target as Element)
-        .closest('.story-scene')
-        ?.querySelector<HTMLElement>('.scene-art') ?? null;
-    if (next !== reflectedArt) {
-      reflectedArt?.style.removeProperty('--reflection');
-      reflectedArt = next;
-    }
-    if (!reflectedArt) return;
-    const bounds = reflectedArt.getBoundingClientRect();
-    reflectedArt.style.setProperty(
-      '--reflection-x',
-      `${((event.clientX - bounds.left) / bounds.width) * 100}%`,
-    );
-    reflectedArt.style.setProperty(
-      '--reflection-y',
-      `${((event.clientY - bounds.top) / bounds.height) * 100}%`,
-    );
-    reflectedArt.style.setProperty('--reflection', '1');
-  }
-  document.addEventListener('pointermove', reflect, { passive: true });
-  gsap.utils.toArray<HTMLElement>('.scene-copy').forEach((copy) => {
-    gsap.fromTo(
-      copy,
-      { y: 34 },
-      {
-        y: 0,
-        scrollTrigger: {
-          trigger: copy.parentElement,
-          start: 'top 96%',
-          end: 'top 30%',
-          scrub: 0.38,
-        },
-      },
-    );
-  });
-  gsap.to('header', {
-    '--page-progress': '100%',
-    ease: 'none',
-    scrollTrigger: {
-      start: 0,
-      end: () => ScrollTrigger.maxScroll(window),
-      scrub: 0.3,
-    },
-  });
+  const stopCinema = mountCinema();
   return () => {
-    stopShots.forEach((stop) => stop());
-    document.removeEventListener('pointermove', reflect);
-    reflectedArt?.style.removeProperty('--reflection');
+    stopCinema();
     lenis.destroy();
   };
 });
-
-function mountShot(art: HTMLElement) {
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d', { alpha: false });
-  if (!context) return () => {};
-  art.append(canvas);
-  const landscape = matchMedia('(min-aspect-ratio: 1/1)');
-  const total = Number(art.dataset.frames);
-  const cache = new Map<number, HTMLImageElement>();
-  const loading = new Set<number>();
-  const failed = new Set<number>();
-  const playhead = { position: 0 };
-  let generation = 0;
-  let desired = 0;
-  let active = false;
-  let forward = 1;
-
-  function paint() {
-    const image = cache.get(desired);
-    if (!image || art.dataset.frame === String(desired)) return;
-    if (
-      canvas.width !== image.naturalWidth ||
-      canvas.height !== image.naturalHeight
-    ) {
-      canvas.width = image.naturalWidth;
-      canvas.height = image.naturalHeight;
-    }
-    context!.drawImage(image, 0, 0);
-    art.dataset.frame = String(desired);
-  }
-
-  function fill() {
-    if (!active) return;
-    const view = landscape.matches ? 'wide' : 'tall';
-    for (const frame of [
-      desired,
-      desired + forward,
-      desired - forward,
-      desired + 2 * forward,
-    ]) {
-      if (loading.size >= 2) break;
-      if (
-        frame < 0 ||
-        frame >= total ||
-        cache.has(frame) ||
-        loading.has(frame) ||
-        failed.has(frame)
-      )
-        continue;
-      const image = new Image();
-      const started = generation;
-      loading.add(frame);
-      image.decoding = 'async';
-      image.src = `/scenes/${art.dataset.shot}/${view}/${String(frame).padStart(3, '0')}.webp`;
-      image
-        .decode()
-        .then(() => {
-          if (started === generation) {
-            cache.set(frame, image);
-            for (const index of cache.keys()) {
-              if (Math.abs(desired - index) > 3) cache.delete(index);
-            }
-            paint();
-          }
-        })
-        .catch(() => {
-          if (started === generation) failed.add(frame);
-        })
-        .finally(() => {
-          if (started !== generation) return;
-          loading.delete(frame);
-          fill();
-        });
-    }
-  }
-
-  function onPosition() {
-    art.style.setProperty('--art-drift', `${(0.5 - playhead.position) * 3.5}%`);
-    const next = Math.round(playhead.position * (total - 1));
-    if (next === desired) return;
-    forward = next > desired ? 1 : -1;
-    desired = next;
-    paint();
-    fill();
-  }
-
-  function reset() {
-    generation++;
-    cache.clear();
-    loading.clear();
-    failed.clear();
-    delete art.dataset.frame;
-  }
-
-  const shot = gsap.to(playhead, {
-    position: 1,
-    ease: 'none',
-    onUpdate: onPosition,
-    scrollTrigger: {
-      trigger: art.parentElement,
-      start: 'top bottom',
-      end: 'bottom top',
-      scrub: 0.25,
-      onToggle: ({ isActive }) => {
-        active = isActive;
-        if (isActive) fill();
-        else reset();
-      },
-    },
-  });
-  active = Boolean(shot.scrollTrigger?.isActive);
-  fill();
-  function changeView() {
-    reset();
-    fill();
-  }
-  landscape.addEventListener('change', changeView);
-  return () => {
-    active = false;
-    reset();
-    art.style.removeProperty('--art-drift');
-    landscape.removeEventListener('change', changeView);
-    shot.scrollTrigger?.kill();
-    shot.kill();
-    canvas.remove();
-  };
-}
 
 const players = Array.from(document.querySelectorAll<HTMLElement>('.player'));
 const index = Array.from(

@@ -119,7 +119,7 @@ test('the results and player backdrops play their own rendered shots', async ({
   const frames = new Set<string>();
   page.on('response', (response) => {
     const path = new URL(response.url()).pathname;
-    if (response.ok() && path.startsWith('/scenes/')) frames.add(path);
+    if (response.ok() && path.startsWith('/journey/')) frames.add(path);
   });
   await page.goto('/#results');
   const spotlight = page.locator('#results .scene-art');
@@ -130,7 +130,7 @@ test('the results and player backdrops play their own rendered shots', async ({
   await expect
     .poll(() =>
       [...frames].some((path) =>
-        /^\/scenes\/salt\/tall\/(?!016\.webp)\d+\.webp$/.test(path),
+        /^\/journey\/home\/tall\/salt\/preview\.webp$/.test(path),
       ),
     )
     .toBe(true);
@@ -147,7 +147,7 @@ test('the results and player backdrops play their own rendered shots', async ({
   await expect
     .poll(() =>
       [...frames].some((path) =>
-        /^\/scenes\/player-clay_cs\/tall\/(?!005\.webp)\d+\.webp$/.test(path),
+        /^\/journey\/members\/tall\/player-clay_cs\/preview\.webp$/.test(path),
       ),
     )
     .toBe(true);
@@ -201,4 +201,41 @@ test('reduced motion uses a still until requested and sound starts only on reque
       .every((path) => /\/016\.webp$/.test(path)),
   ).toBe(true);
   expect(assets.has('/pin/orbit.webp')).toBe(false);
+});
+
+test('a camera connector crosses Chronos smoothly with static content geometry', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1877, height: 822 });
+  await page.goto('/#chronos');
+  await page.evaluate(() => document.fonts.ready);
+  const title = page.getByRole('heading', { name: 'Chronos Security CTF.' });
+  const camera = page.locator('.cinema');
+  // Scroll across the same boundary in both directions. The layout coordinate
+  // of the heading is independent of the rendered camera pose.
+  const top = () =>
+    title.evaluate(
+      (element) => element.getBoundingClientRect().top + window.scrollY,
+    );
+  const start = await top();
+  const jump = async (offset: number) => {
+    await page.locator('#chronos').evaluate((section, offset) => {
+      const scrollTop = section.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({
+        top: scrollTop + offset * innerHeight,
+        behavior: 'instant',
+      });
+    }, offset);
+  };
+  await expect(camera).toHaveAttribute('data-reel', 'chronos');
+  await jump(-0.54);
+  await expect(camera).toHaveAttribute('data-reel', 'script-to');
+  await expect.poll(top).toBeCloseTo(start, 0);
+  const playhead = await camera.getAttribute('data-frame');
+  await jump(-0.68);
+  await expect(camera).toHaveAttribute('data-reel', 'script-to');
+  await expect(camera).not.toHaveAttribute('data-frame', playhead!);
+  await expect.poll(top).toBeCloseTo(start, 0);
+  await expect(page.locator('.cinema-image')).toHaveCount(1);
+  await expect(title.locator('..')).toHaveCSS('transform', 'none');
 });

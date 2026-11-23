@@ -70,18 +70,6 @@ header {
   height: var(--bar);
   gap: clamp(16px, 3.2vw, 62px);
   background: #111514e8;
-  border-bottom: 1px solid #ffffff27;
-  backdrop-filter: blur(14px);
-}
-header::after {
-  content: '';
-  position: absolute;
-  height: 1px;
-  left: 0;
-  width: var(--page-progress, 0%);
-  bottom: -1px;
-  background: var(--acid);
-  opacity: 0.85;
 }
 .brand {
   display: inline-flex;
@@ -428,38 +416,6 @@ h2 span {
 }
 .scene-art picture,
 .scene-art img,
-.scene-art canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.scene-art :is(picture, canvas) {
-  transform: translateY(var(--art-drift, 0%)) scale(1.055);
-  transform-origin: center;
-}
-.scene-art canvas {
-  visibility: hidden;
-}
-.scene-art[data-frame] canvas {
-  visibility: visible;
-}
-.scene-art[data-frame] picture {
-  visibility: hidden;
-}
-.scene-art::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse at var(--reflection-x, 50%) var(--reflection-y, 50%),
-    #d2ef9c17,
-    transparent 43%
-  );
-  opacity: var(--reflection, 0);
-  mix-blend-mode: screen;
-}
 .story-scene::after {
   content: '';
   position: absolute;
@@ -578,8 +534,10 @@ h2 span {
 .spotlight .source-links {
   margin-top: 12px;
 }
-.result-scene:has(+ .contact) h2 {
-  max-width: 8ch;
+@media (min-width: 761px) and (min-aspect-ratio: 4/5) {
+  .result-scene .scene-copy h2 {
+    font-size: clamp(4.2rem, min(8.4vw, 15.5svh), 11rem);
+  }
 }
 .contact {
   min-height: calc(100svh - var(--bar));
@@ -968,5 +926,110 @@ footer .text-link {
   *::after {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* The document scrolls over one camera. No section can paint an edge into it. */
+.cinema {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
+  view-transition-name: cinema;
+}
+.cinema-ready .cinema {
+  visibility: visible;
+}
+.cinema canvas,
+.cinema-glare {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.cinema-glare {
+  background: radial-gradient(
+    ellipse at var(--glare-x, 70%) var(--glare-y, 45%),
+    #d6e7bc13,
+    transparent 37%
+  );
+  mix-blend-mode: screen;
+}
+.cinema-ready main {
+  position: relative;
+  z-index: 1;
+}
+.cinema-ready :is(.runway, .stage, .story-scene, .roster-intro) {
+  background: transparent;
+}
+.cinema-ready :is(.stage-light, .scene-art),
+.cinema-ready .story-scene::after {
+  visibility: hidden;
+}
+.cinema-ready header {
+  background: linear-gradient(
+    180deg,
+    #090f10ee 0%,
+    #090f109e 43%,
+    #090f1000 100%
+  );
+}
+.cinema-ready .hero-foot,
+.cinema-ready footer {
+  border: 0;
+}
+.cinema-ready .handle-strip {
+  border: 0;
+  background: linear-gradient(0deg, #0a1113b2, transparent);
+}
+.cinema-ready .member-directory aside {
+  border: 0;
+  background: linear-gradient(180deg, #0a1113e5, #0a111300);
+}
+.cinema-ready .scene-copy,
+.cinema-ready .intro-copy {
+  text-shadow: 0 3px 24px #070b0b8a;
+}
+.cinema-ready .button {
+  text-shadow: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(cinema) {
+    animation-duration: 0.64s;
+  }
+  ::view-transition-old(cinema) {
+    animation: fade-through 0.53s ease-out both;
+  }
+  ::view-transition-new(cinema) {
+    animation: fade-through 0.55s ease-in reverse both;
+  }
+  @keyframes fade-through {
+    to {
+      opacity: 0;
+      filter: blur(8px);
+    }
+  }
+  .button {
+    background-image: linear-gradient(
+      111deg,
+      transparent 20%,
+      #fff9 49%,
+      transparent 72%
+    );
+    background-repeat: no-repeat;
+    background-size: 210% 100%;
+    background-position: 120% 0;
+    transition:
+      transform 0.24s ease,
+      background-position 0.52s ease;
+  }
+  .button:is(:hover, :focus-visible) {
+    background-position: -85% 0;
+  }
+  .sound:active,
+  .channel:active {
+    transform: scale(0.965);
   }
 }
