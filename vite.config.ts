@@ -15,7 +15,7 @@ const highlight = `<h2 id="event">${escape(best.title)}<span>.</span></h2><p cla
 const team = records.members
   .map(
     (m) =>
-      `<li><a href="${escape(m.profile)}">${escape(m.handle)} <span aria-hidden="true">↗</span></a></li>`,
+      `<li><a href="${escape(m.profile)}" aria-label="${escape(m.handle)} on CTFtime">${escape(m.handle)} <span aria-hidden="true"><small>CTFtime</small> ↗</span></a></li>`,
   )
   .join('');
 export default defineConfig({

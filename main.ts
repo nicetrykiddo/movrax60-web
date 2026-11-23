@@ -8,13 +8,21 @@ const portrait = matchMedia('(max-aspect-ratio:1/1)');
 const canvas = document.querySelector('canvas')!;
 const context = canvas.getContext('2d', { alpha: false });
 const label = document.querySelector<HTMLElement>('#shot-name')!;
+const chapterLinks = document.querySelectorAll<HTMLAnchorElement>('nav a');
 const lastFrame = 127;
 const chapterAt = (frame: number) => (frame < 40 ? 0 : frame < 84 ? 1 : 2);
 const names = ['Projection', 'Film transport', 'Registration'];
 const stills = [0, 62, lastFrame];
 
 function describe(progress: number) {
-  label.textContent = names[chapterAt(Math.round(progress * lastFrame))];
+  const chapter = chapterAt(Math.round(progress * lastFrame));
+  if (label.textContent !== names[chapter]) {
+    label.textContent = names[chapter];
+    chapterLinks.forEach((link, index) => {
+      if (index + 1 === chapter) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  }
   document.documentElement.style.setProperty(
     '--progress',
     (progress * 100).toFixed(2) + '%',

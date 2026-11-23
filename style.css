@@ -464,6 +464,37 @@ h2 span {
     height: 48px;
   }
 }
+nav a[aria-current='location'] {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+.roster small {
+  display: none;
+}
+@media (hover: hover) and (min-width: 700px) {
+  .roster small {
+    display: inline-block;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity .18s, transform .18s;
+  }
+  .roster a:is(:hover, :focus-visible) small {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sound[aria-pressed='true'] b {
+    animation: sound-level 950ms ease-in-out infinite alternate;
+  }
+  .sound b:nth-child(2) { animation-delay: -430ms; }
+  .sound b:nth-child(3) { animation-delay: -230ms; }
+  @keyframes sound-level {
+    from { transform: scaleY(.42); }
+    to { transform: scaleY(1); }
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
