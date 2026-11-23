@@ -9,6 +9,7 @@ const canvas = document.querySelector('canvas')!;
 const context = canvas.getContext('2d', { alpha: false });
 const label = document.querySelector<HTMLElement>('#shot-name')!;
 const chapterLinks = document.querySelectorAll<HTMLAnchorElement>('nav a');
+document.querySelector<HTMLElement>('.film-edge')!.hidden = false;
 const lastFrame = 127;
 const chapterAt = (frame: number) => (frame < 40 ? 0 : frame < 84 ? 1 : 2);
 const names = ['Projection', 'Film transport', 'Registration'];
@@ -95,8 +96,9 @@ function filmPlayer(ctx: CanvasRenderingContext2D) {
         if (!alive || run !== generation) return;
         retryAt.delete(index);
         cache.set(index, image);
+        const radius = desired < 39 ? 2.5 : 5;
         for (const key of cache.keys()) {
-          if (Math.abs(desired - key) > 5 && !stills.includes(key))
+          if (Math.abs(desired - key) > radius && !stills.includes(key))
             cache.delete(key);
         }
       })
