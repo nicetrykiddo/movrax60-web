@@ -1,7 +1,18 @@
-# movrax60
+# movrax60 — The Last Exposure
 
-Scroll through the team introduction, featured competition and public roster. The CTFtime link leads to complete standings. Content is built into the HTML from records.json.
+A scroll-controlled short film introduces the international CTF team. A practical projector, eight moving film strips and a backlit registration gate form three connected Blender Cycles shots. The eight printed separations align into the lowercase team mark. The roster and the team's featured finish are real HTML links rendered from `records.json`.
 
-Lenis handles wheel smoothing and GSAP ScrollTrigger measures camera travel. A damped spring follows the desired viewpoint. Frames from a 64-view Blender Cycles studio shoot are fetched around the current angle; a still is available before loading, without JavaScript and with reduced motion. The desktop sculpture stays beside the team content and the mobile composition scrolls away naturally.
+## Run and deploy
 
-Run `npm ci` and `npm run dev` locally. Use `npm test` for production build and browser checks. Vercel uses the repository root, `npm run build`, and the `dist` output directory. Regenerate the included artwork and frame sequence using `blender -b -P art/emblem.py`.
+Run `npm ci` and `npm run dev`. Production uses `npm run build` and the `dist/` directory on Vercel. `npm test` runs the build and local Chrome interaction checks. All film frames ship as WebPs. Deployment requires neither Blender nor a GPU.
+
+## Motion and sound
+
+The two camera compositions each have 128 frames. A three-request window loads around the current scroll position. Adjacent frames blend during slow scrolling, and a damped spring settles the playhead. The wheel uses Lenis and ScrollTrigger; touch scrolling remains native. With reduced motion or JavaScript disabled, each chapter uses its own still. The projector recording and original tonal score load after the sound control is pressed.
+
+## Artwork
+
+- `art/film/stock.py` prints perforated acetate textures from public-domain machinery engravings and public team handles. `art/library/generated/make_mattes.py` prepares the eight optical separations. Both tools use Python, Pillow, NumPy and fontTools with WOFF2 support.
+- `blender -b --python-exit-code 1 -P art/film/render.py` rebuilds the film. Set `FILM_FRAMES=0,62,127` to preview the three chapters, `FILM_VIEWS=tall` for a single orientation, and `FILM_OUT` to use a separate preview directory. Blender is configured for Cycles with OptiX where available.
+- `python art/film/score.py` mixes the CC0 recording *Cinema-Projector.wav* by Dr. Macak with an original three-note score, using NumPy and FFmpeg. The rendered audio is in `public/audio/`.
+- The research board is `art/library/index.html`. File-level provenance is in `art/library/sources.json`. The published film uses historical plates from the 1911 *Cyclopedia of Motion-Picture Work*, CC0 Poly Haven and ambientCG surfaces and lighting, and the team's generated lettering. DM Sans ships with its license in `public/fonts/`.
