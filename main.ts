@@ -1,6 +1,4 @@
 import gsap from 'gsap';
-import Lenis from 'lenis';
-import 'lenis/dist/lenis.css';
 import { mountCinema } from './cinema';
 
 const entry = performance.getEntriesByType('navigation')[0] as
@@ -13,13 +11,6 @@ if (entry?.type === 'navigate' && scrollY === 0 && location.hash.length > 1) {
 }
 
 gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
-  const lenis = new Lenis({
-    anchors: true,
-    smoothWheel: true,
-    syncTouch: false,
-    autoRaf: true,
-  });
-  const stop = mountCinema();
   const highlights = document.querySelectorAll<HTMLElement>(
     '.button,.sound,.player-plate,.plate-step,.player-index a,nav a,.source-links a,.channel,.text-link,.scroll-cue',
   );
@@ -91,26 +82,21 @@ gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
       item.removeEventListener('pointerdown', press);
       resetEvents.forEach((event) => item.removeEventListener(event, release));
     });
-    lenis.destroy();
-    stop();
     highlights.forEach((item) =>
       item.removeEventListener('pointermove', reflect),
     );
   };
 });
 
-const light = document.querySelector<HTMLButtonElement>('.room-light');
-if (light) {
-  light.hidden = false;
-  light.addEventListener('click', () => {
-    const on = light.getAttribute('aria-pressed') !== 'true';
-    light.setAttribute('aria-pressed', String(on));
-    document.body.classList.toggle('room-light-on', on);
-    light.querySelector('span')!.textContent = on
-      ? 'Dim desk light'
-      : 'Desk light';
-  });
-}
+gsap.matchMedia().add(
+  {
+    motion: '(prefers-reduced-motion: no-preference)',
+    still: '(prefers-reduced-motion: reduce)',
+  },
+  (context) => {
+    return mountCinema(Boolean(context.conditions?.still));
+  },
+);
 
 const results = document.querySelector<HTMLElement>('.result-dial');
 if (results) {
@@ -118,7 +104,6 @@ if (results) {
   const sections = controls.map(
     (link) => document.getElementById(link.hash.slice(1))!,
   );
-  const preview = results.querySelector<HTMLImageElement>('img')!;
   const caption = results.querySelector('span')!;
   const first = sections[0];
   const last = sections.at(-1)!;
@@ -139,7 +124,6 @@ if (results) {
   controls.forEach((link) => {
     const label = link.getAttribute('aria-label')!;
     const show = () => {
-      preview.src = `/relay/posters/${link.dataset.poster}-wide.webp`;
       caption.textContent = label;
       results.dataset.preview = '';
     };

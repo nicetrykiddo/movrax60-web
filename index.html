@@ -12,7 +12,6 @@
       content="Meet movrax60, an international cybersecurity capture the flag team. Explore the players and their competition highlights."
     />
     <title>movrax60 — International CTF team</title>
-    <link rel="icon" href="/mascot.png" />
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body class="home" id="top">
@@ -25,7 +24,6 @@
         aria-labelledby="hero-title"
         data-cue="0"
       >
-        <!-- opening -->
         <div class="scene-copy hero-copy">
           <p class="kicker"><i></i> International CTF team</p>
           <h1 id="hero-title">movrax<span>60</span></h1>
@@ -42,12 +40,13 @@
           </div>
         </div>
         <button
-          class="room-light button"
+          class="mascot-surface"
           type="button"
-          aria-pressed="false"
+          aria-label="Wave to the mascot. Drag to turn it."
           hidden
-        >
-          <i aria-hidden="true"></i><span>Desk light</span>
+        ></button>
+        <button class="mascot-action button" type="button" hidden>
+          Wave to the mascot
         </button>
         <a class="scroll-cue" href="#team"
           ><i aria-hidden="true"></i> Scroll to enter</a
@@ -59,7 +58,6 @@
         aria-labelledby="crew-title"
         data-cue="89"
       >
-        <!-- roster scene -->
         <div class="scene-copy">
           <p class="kicker"><i></i> Members</p>
           <h2 id="crew-title">Behind<br />the handles<span>.</span></h2>

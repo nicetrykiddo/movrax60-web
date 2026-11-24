@@ -12,21 +12,13 @@ const escape = (value: string) =>
 const number = (n: number) => n.toLocaleString('en-GB');
 const slug = (handle: string) => 'player-' + handle.toLowerCase();
 const arrow = '<b aria-hidden="true">↗</b>';
-const brand = '<img src="/mascot.png" width="36" height="36" alt="">movrax60';
+const brand = '<span class="brand-mark" aria-hidden="true">✦</span>movrax60';
 const footer = `<footer><a class="brand" href="/" aria-label="movrax60 home">${brand}</a><span>International CTF team</span><a class="text-link" href="#top">Back to top <b aria-hidden="true">↑</b></a></footer>`;
 
 function header(members: boolean) {
   return `<header><a class="brand" href="/" aria-label="movrax60 home">${brand}</a>
     <nav aria-label="Main navigation"><a href="/members/"${members ? ' aria-current="page"' : ''}>Members</a><a href="/#results">Results</a><a href="/#contact">Contact</a></nav>
     <button class="sound" type="button" hidden aria-label="Sound off" aria-pressed="false"><i aria-hidden="true"><b></b><b></b><b></b><b></b></i><span>Sound off</span></button></header>`;
-}
-
-function backdrop(shot: string, priority = false) {
-  const base = '/relay/posters/' + shot;
-  return `<picture class="scene-art" aria-hidden="true">
-    <source media="(max-aspect-ratio:1/1)" srcset="${base}-tall.webp">
-    <img src="${base}-wide.webp" alt="" ${priority ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">
-  </picture>`;
 }
 
 const resultScenes = ['nullcon', 'ritsec', 'script', 'chronos'];
@@ -45,7 +37,7 @@ const results = records.featured
       : '';
     const shot = resultScenes[index];
     return `<section class="story-scene result-scene page-section${index % 2 ? ' reverse' : ''}" id="${shot}" aria-labelledby="${shot}-title" data-cue="${resultCues[index]}">
-    ${backdrop(shot)}
+    
     <div class="scene-copy">
       <p class="kicker"><i></i> ${escape(feature.date)}</p>
       <h2 id="${shot}-title">${escape(feature.title)}<span>.</span></h2>
@@ -58,7 +50,7 @@ const results = records.featured
   .join('');
 
 const star = records.spotlight;
-const spotlight = `${backdrop('salt')}
+const spotlight = `
   <div class="scene-copy">
     <p class="kicker"><i></i> ${escape(star.organizer)} / ${escape(star.date)}</p>
     <h2 id="highlight-title">Cyber<br>Apocalypse<span>.</span></h2>
@@ -79,7 +71,7 @@ const channels = records.contacts
   )
   .join('');
 const contact = `<section id="contact" class="contact story-scene page-section" aria-labelledby="contact-title" data-cue="368">
-  ${backdrop('contact')}
+  
   <div class="scene-copy">
     <p class="kicker"><i></i> Contact</p>
     <h2 id="contact-title">Get in<br>touch<span>.</span></h2>
@@ -91,16 +83,15 @@ const contact = `<section id="contact" class="contact story-scene page-section" 
 </section>`;
 
 const eventNav = [
-  { id: 'results', title: 'Cyber Apocalypse', poster: 'salt' },
+  { id: 'results', title: 'Cyber Apocalypse' },
   ...records.featured.map((event, i) => ({
     id: resultScenes[i],
     title: event.title,
-    poster: resultScenes[i],
   })),
 ];
 const resultNavigation = `<nav class="result-dial" aria-label="Competition highlights" hidden>
-  <div class="result-preview" aria-hidden="true"><img alt="" width="192" height="108"><span></span></div>
-  ${eventNav.map(({ id, title, poster }) => `<a href="#${id}" data-poster="${poster}" aria-label="${escape(title)}"><i aria-hidden="true"></i></a>`).join('')}
+  <div class="result-preview" aria-hidden="true"><i aria-hidden="true"></i><span></span></div>
+  ${eventNav.map(({ id, title }) => `<a href="#${id}" aria-label="${escape(title)}"><i aria-hidden="true"></i></a>`).join('')}
 </nav>`;
 
 const roomRoster = `<nav class="room-roster" aria-label="Team profiles">${records.members
@@ -116,7 +107,7 @@ const playerPlates = records.members
       member,
       index,
     ) => `<a href="#${slug(member.handle)}" data-plate="${index}" class="player-plate" aria-label="${escape(member.handle)} profile" style="--offset:${index};--deck-order:${8 - index}">
-  <span class="plate-face"><img src="/mascot.png" width="34" height="34" alt=""><strong>${escape(member.handle)}</strong><b aria-hidden="true">↗</b></span>
+  <span class="plate-face"><span class="brand-mark" aria-hidden="true">✦</span><strong>${escape(member.handle)}</strong><b aria-hidden="true">↗</b></span>
 </a>`,
   )
   .join('');
@@ -131,7 +122,7 @@ const profiles = records.members
   .map((member, index) => {
     const id = slug(member.handle);
     return `<article class="player story-scene" id="${id}" aria-labelledby="${id}-title" data-cue="${playerCues[index]}">
-    ${backdrop(index < 4 ? 'roster' : 'script')}
+    
     <div class="scene-copy">
       <p class="kicker"><i></i> Capturing flags since ${escape(member.since)}</p>
       <h2 id="${id}-title">${escape(member.handle)}</h2>
@@ -160,8 +151,6 @@ export default defineConfig({
           'room roster': roomRoster,
           results,
           contact,
-          opening: backdrop('entrance', true),
-          'roster scene': backdrop('roster'),
           'player plates': playerPlates,
           'player index': playerIndex,
           members: profiles,
