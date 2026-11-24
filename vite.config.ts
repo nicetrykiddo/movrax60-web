@@ -21,17 +21,16 @@ function header(members: boolean) {
     <button class="sound" type="button" hidden aria-label="Sound off" aria-pressed="false"><i aria-hidden="true"><b></b><b></b><b></b><b></b></i><span>Sound off</span></button></header>`;
 }
 
-function backdrop(shot: string, frames = 30) {
-  const poster = frames === 30 ? '016' : '005';
-  const art = '/scenes/' + shot;
-  return `<div class="scene-art" data-shot="${shot}" data-frames="${frames}" aria-hidden="true">
-    <picture><source media="(max-aspect-ratio: 1/1)" srcset="${art}/tall/${poster}.webp">
-      <img src="${art}/wide/${poster}.webp" alt="" loading="lazy" decoding="async">
-    </picture>
-  </div>`;
+function backdrop(shot: string, priority = false) {
+  const base = '/relay/posters/' + shot;
+  return `<picture class="scene-art" aria-hidden="true">
+    <source media="(max-aspect-ratio:1/1)" srcset="${base}-tall.webp">
+    <img src="${base}-wide.webp" alt="" ${priority ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">
+  </picture>`;
 }
 
 const resultScenes = ['nullcon', 'ritsec', 'script', 'chronos'];
+const resultCues = [170, 222, 265, 320];
 const results = records.featured
   .map((feature, index) => {
     const event = records.events.find(
@@ -45,7 +44,7 @@ const results = records.featured
       ? `<p class="result-detail">${points} points · ${number(feature.field)} teams</p>`
       : '';
     const shot = resultScenes[index];
-    return `<section class="story-scene result-scene page-section${index % 2 ? ' reverse' : ''}" id="${shot}" aria-labelledby="${shot}-title">
+    return `<section class="story-scene result-scene page-section${index % 2 ? ' reverse' : ''}" id="${shot}" aria-labelledby="${shot}-title" data-cue="${resultCues[index]}">
     ${backdrop(shot)}
     <div class="scene-copy">
       <p class="kicker"><i></i> ${escape(feature.date)}</p>
@@ -79,7 +78,7 @@ const channels = records.contacts
       : `<div class="channel pending"><span>${escape(label)}</span><small>Coming soon</small></div>`,
   )
   .join('');
-const contact = `<section id="contact" class="contact story-scene page-section" aria-labelledby="contact-title">
+const contact = `<section id="contact" class="contact story-scene page-section" aria-labelledby="contact-title" data-cue="368">
   ${backdrop('contact')}
   <div class="scene-copy">
     <p class="kicker"><i></i> Contact</p>
@@ -91,10 +90,14 @@ const contact = `<section id="contact" class="contact story-scene page-section" 
   ${footer}
 </section>`;
 
-const handleStrip = records.members
+const playerPlates = records.members
   .map(
-    (member) =>
-      `<a href="/members/#${slug(member.handle)}">${escape(member.handle)}</a>`,
+    (
+      member,
+      index,
+    ) => `<a href="#${slug(member.handle)}" data-plate="${index}" class="player-plate" aria-label="${escape(member.handle)} profile" style="--offset:${index};--deck-order:${8 - index}">
+  <span class="plate-face"><img src="/mascot.png" width="34" height="34" alt=""><strong>${escape(member.handle)}</strong><b aria-hidden="true">↗</b></span>
+</a>`,
   )
   .join('');
 const playerIndex = records.members
@@ -103,11 +106,12 @@ const playerIndex = records.members
       `<a href="#${slug(member.handle)}">${escape(member.handle)}</a>`,
   )
   .join('');
+const playerCues = [104, 124, 147, 166, 218, 239, 258, 278];
 const profiles = records.members
   .map((member, index) => {
     const id = slug(member.handle);
-    return `<article class="player story-scene${index % 2 ? ' reverse' : ''}" id="${id}" aria-labelledby="${id}-title">
-    ${backdrop(id, 10)}
+    return `<article class="player story-scene" id="${id}" aria-labelledby="${id}-title" data-cue="${playerCues[index]}">
+    ${backdrop(index < 4 ? 'roster' : 'script')}
     <div class="scene-copy">
       <p class="kicker"><i></i> Capturing flags since ${escape(member.since)}</p>
       <h2 id="${id}-title">${escape(member.handle)}</h2>
@@ -134,8 +138,9 @@ export default defineConfig({
           spotlight,
           results,
           contact,
+          opening: backdrop('entrance', true),
           'roster scene': backdrop('roster'),
-          'handle strip': handleStrip,
+          'player plates': playerPlates,
           'player index': playerIndex,
           members: profiles,
         };
