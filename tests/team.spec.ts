@@ -50,6 +50,11 @@ test('the glass crossing scrubs in both directions and keeps copy anchored', asy
   const title = page.locator('#hero-title');
   const titleTop = () =>
     title.evaluate((node) => node.getBoundingClientRect().top + scrollY);
+  await title.evaluate(async (node) => {
+    await Promise.allSettled(
+      node.getAnimations().map((animation) => animation.finished),
+    );
+  });
   const start = await titleTop();
   const frame = async () => Number(await stage.getAttribute('data-frame'));
   await page.evaluate(() => window.scrollTo({ top: 470, behavior: 'instant' }));
@@ -164,4 +169,32 @@ test('a blocked film falls back to a current still and retains navigation', asyn
   await expect(
     page.getByRole('heading', { name: 'The roster.' }),
   ).toBeInViewport();
+});
+
+test('the room light changes the opening and competition previews can be selected', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.locator('.relay-stage')).toHaveAttribute('data-frame', '0');
+  await page.getByRole('button', { name: 'Desk light', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Dim desk light' }),
+  ).toHaveAttribute('aria-pressed', 'true');
+  await expect
+    .poll(async () =>
+      parseFloat(
+        await page
+          .locator('.desk-bounce')
+          .evaluate((el) => getComputedStyle(el).opacity),
+      ),
+    )
+    .toBeGreaterThan(0.8);
+  await page.getByRole('link', { name: 'Our results' }).click();
+  const dial = page.getByRole('navigation', { name: 'Competition highlights' });
+  const result = dial.getByRole('link', { name: 'RITSEC CTF' });
+  await result.hover();
+  await expect(dial.locator('.result-preview span')).toHaveText('RITSEC CTF');
+  await result.click();
+  await expect(page).toHaveURL(/#ritsec$/);
+  await expect(result).toHaveAttribute('aria-current', 'location');
 });
