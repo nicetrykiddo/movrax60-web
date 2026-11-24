@@ -97,7 +97,7 @@ def depth(name, x, y):
     floor = ease((.48-y)/.50)
     near = ease((x-.83)/.17)
     if name == 'entrance':
-        return max(3.6, 16.5 - 10.6*floor - 9.8*near - 3.4*bump(x,y,.72,.52,.3,.56))
+        return max(4.8, 17 - 9.6*floor - 6.2*near - 5.1*bump(x,y,.68,.46,.33,.48))
     if name == 'interior':
         return max(3.6, 14.8 - 8.5*floor - 7.8*bump(x,y,.98,.55,.26,.73))
     if name == 'passage':
@@ -122,7 +122,8 @@ def light_stamp(nodes, links, uv, place, separation, tone):
     return distance.inputs[1], add
 
 def projection(name, view, aspect):
-    path = PLATES / f'{name}-{view}.webp'
+    plate = 'session' if name == 'entrance' else name
+    path = PLATES / f'{plate}-{view}.webp'
     if not path.exists():
         path = PLATES / f'{name}-wide.webp'
     source = bpy.data.images.load(str(path), check_existing=True)
@@ -270,8 +271,8 @@ def pose(name, t, view):
     portrait = view == 'tall'
     drift = ease(t)
     if name == 'entrance':
-        cam_pos = (.02 + .51*drift, .016 + .085*drift, -1.78*drift)
-        angles = (-.017*drift, -.061*drift, -.015*math.sin(t*math.pi))
+        cam_pos = (-.11 + .93*drift, -.19 + .29*drift, -2.36*drift)
+        angles = (.050 - .066*drift, -.023 - .071*drift, -.028 + .049*drift)
     elif name == 'interior':
         cam_pos = (-.42 + .91*drift, -.05 + .10*drift, -.16 - 2.10*drift)
         angles = (.018*math.sin(t*7), .067 - .16*drift, .026*math.sin(t*math.tau))
@@ -291,12 +292,15 @@ def pose(name, t, view):
     sweep.inputs[1].default_value = -.15 + 1.29*ease(t/.84)
     etch_mix.inputs[0].default_value = .65 - .56*ease((t-.68)/.22)
     lamp.location = (x-.42+.93*drift,.46,-1.57)
-    if name != 'entrance':
+    if name != 'entrance' or t < .72:
         for ob in (door, edge, etch):
             ob.hide_render = True
     else:
         for ob in (door, edge, etch):
             ob.hide_render = False
+
+    if name == 'entrance':
+        etch.hide_render = True
 
     wipe.hide_render = True
     if name != 'entrance' and t < .135:
