@@ -34,7 +34,7 @@ export function mountCinema() {
   scene.className = 'relay-stage';
   scene.setAttribute('aria-hidden', 'true');
   scene.innerHTML =
-    '<div class="relay-shade"></div><div class="relay-shade right"></div><canvas class="rain"></canvas><div class="ember-light"></div><div class="mist distant"></div><div class="mist"></div>';
+    '<div class="relay-shade"></div><div class="relay-shade right"></div><canvas class="rain"></canvas><div class="ember-light"></div><div class="desk-bounce"></div><div class="cup-steam"></div><div class="mist distant"></div><div class="mist"></div>';
   document.body.prepend(scene);
   const portrait = matchMedia('(max-aspect-ratio:1/1)');
   const rain = scene.querySelector<HTMLCanvasElement>('.rain')!;
@@ -45,7 +45,7 @@ export function mountCinema() {
   let bottom = 1;
   let frame = cues[0]?.frame ?? 0;
   let pointerX = 0.69;
-  let pointerY = 0.4;
+  let pointerY = 0.31;
   let lightX = pointerX;
   let lightY = pointerY;
   let paintedLightX = lightX;

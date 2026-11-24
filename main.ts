@@ -21,7 +21,7 @@ gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
   });
   const stop = mountCinema();
   const highlights = document.querySelectorAll<HTMLElement>(
-    '.button,.sound,.player-plate',
+    '.button,.sound,.player-plate,.plate-step,.player-index a,nav a,.source-links a,.channel,.text-link,.scroll-cue',
   );
   function reflect(this: HTMLElement, event: PointerEvent) {
     const bounds = this.getBoundingClientRect();
@@ -34,10 +34,63 @@ gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
       `${((event.clientY - bounds.top) / bounds.height) * 100}%`,
     );
   }
+  const held = new Map<HTMLElement, Animation>();
+  function press(this: HTMLElement, event: PointerEvent) {
+    if (event.button !== 0) return;
+    held.get(this)?.cancel();
+    held.set(
+      this,
+      this.animate([{ scale: '1' }, { scale: '.958' }], {
+        duration: 120,
+        easing: 'ease-out',
+        fill: 'forwards',
+      }),
+    );
+  }
+  function release(this: HTMLElement) {
+    if (!held.has(this)) return;
+    held.get(this)?.cancel();
+    held.delete(this);
+    this.animate(
+      [{ scale: '.958' }, { scale: '1.017', offset: 0.56 }, { scale: '1' }],
+      { duration: 270, easing: 'ease-out' },
+    );
+  }
+  const resetEvents = ['pointerup', 'pointercancel', 'pointerleave'] as const;
+  highlights.forEach((item) => {
+    item.addEventListener('pointerdown', press);
+    resetEvents.forEach((event) => item.addEventListener(event, release));
+  });
   highlights.forEach((item) =>
     item.addEventListener('pointermove', reflect, { passive: true }),
   );
+  const reveals = document.querySelectorAll<HTMLElement>(
+    '.story-scene .scene-copy',
+  );
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add('copy-arrived');
+        observer.unobserve(entry.target);
+      }
+    },
+    { threshold: 0.19 },
+  );
+  reveals.forEach((copy) => {
+    copy.classList.add('copy-reveal');
+    observer.observe(copy);
+  });
   return () => {
+    observer.disconnect();
+    reveals.forEach((copy) =>
+      copy.classList.remove('copy-reveal', 'copy-arrived'),
+    );
+    held.forEach((animation) => animation.cancel());
+    highlights.forEach((item) => {
+      item.removeEventListener('pointerdown', press);
+      resetEvents.forEach((event) => item.removeEventListener(event, release));
+    });
     lenis.destroy();
     stop();
     highlights.forEach((item) =>
@@ -45,6 +98,62 @@ gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
     );
   };
 });
+
+const light = document.querySelector<HTMLButtonElement>('.room-light');
+if (light) {
+  light.hidden = false;
+  light.addEventListener('click', () => {
+    const on = light.getAttribute('aria-pressed') !== 'true';
+    light.setAttribute('aria-pressed', String(on));
+    document.body.classList.toggle('room-light-on', on);
+    light.querySelector('span')!.textContent = on
+      ? 'Dim desk light'
+      : 'Desk light';
+  });
+}
+
+const results = document.querySelector<HTMLElement>('.result-dial');
+if (results) {
+  const controls = [...results.querySelectorAll<HTMLAnchorElement>('a')];
+  const sections = controls.map(
+    (link) => document.getElementById(link.hash.slice(1))!,
+  );
+  const preview = results.querySelector<HTMLImageElement>('img')!;
+  const caption = results.querySelector('span')!;
+  const first = sections[0];
+  const last = sections.at(-1)!;
+  function track() {
+    results!.hidden =
+      first.getBoundingClientRect().top > innerHeight * 0.72 ||
+      last.getBoundingClientRect().bottom < innerHeight * 0.2;
+    if (results!.hidden) return;
+    let active = 0;
+    sections.forEach((section, i) => {
+      if (section.getBoundingClientRect().top < innerHeight * 0.46) active = i;
+    });
+    controls.forEach((link, i) => {
+      if (i === active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  }
+  controls.forEach((link) => {
+    const label = link.getAttribute('aria-label')!;
+    const show = () => {
+      preview.src = `/relay/posters/${link.dataset.poster}-wide.webp`;
+      caption.textContent = label;
+      results.dataset.preview = '';
+    };
+    const hide = () => delete results.dataset.preview;
+    link.addEventListener('pointerenter', show);
+    link.addEventListener('focus', show);
+    link.addEventListener('pointerleave', hide);
+    link.addEventListener('blur', hide);
+    link.addEventListener('click', hide);
+  });
+  addEventListener('scroll', track, { passive: true });
+  addEventListener('resize', track, { passive: true });
+  track();
+}
 
 const articles = [...document.querySelectorAll<HTMLElement>('.player')];
 const plates = [

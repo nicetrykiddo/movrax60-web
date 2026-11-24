@@ -90,6 +90,26 @@ const contact = `<section id="contact" class="contact story-scene page-section" 
   ${footer}
 </section>`;
 
+const eventNav = [
+  { id: 'results', title: 'Cyber Apocalypse', poster: 'salt' },
+  ...records.featured.map((event, i) => ({
+    id: resultScenes[i],
+    title: event.title,
+    poster: resultScenes[i],
+  })),
+];
+const resultNavigation = `<nav class="result-dial" aria-label="Competition highlights" hidden>
+  <div class="result-preview" aria-hidden="true"><img alt="" width="192" height="108"><span></span></div>
+  ${eventNav.map(({ id, title, poster }) => `<a href="#${id}" data-poster="${poster}" aria-label="${escape(title)}"><i aria-hidden="true"></i></a>`).join('')}
+</nav>`;
+
+const roomRoster = `<nav class="room-roster" aria-label="Team profiles">${records.members
+  .map(
+    (member) =>
+      `<a href="/members/#${slug(member.handle)}"><span>${escape(member.handle)}</span><b aria-hidden="true">↗</b></a>`,
+  )
+  .join('')}</nav>`;
+
 const playerPlates = records.members
   .map(
     (
@@ -136,6 +156,8 @@ export default defineConfig({
         const parts: Record<string, string> = {
           header: header(ctx.filename.endsWith('/members/index.html')),
           spotlight,
+          'result navigation': resultNavigation,
+          'room roster': roomRoster,
           results,
           contact,
           opening: backdrop('entrance', true),

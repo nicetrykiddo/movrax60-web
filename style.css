@@ -1011,3 +1011,257 @@ footer .text-link {
     height: 35px;
   }
 }
+
+/* Controls for the room and competition record. */
+.room-light {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 22px;
+  font-size: 0.76rem;
+}
+.room-light i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ddc0a7;
+  box-shadow: 0 0 0 4px #fbd4a326;
+}
+.room-light[aria-pressed='true'] i {
+  background: #fff0c5;
+  box-shadow:
+    0 0 0 4px #fbd4a344,
+    0 0 16px 4px #ffb978;
+}
+.room-light-on .hero .scene-art img {
+  filter: brightness(1.22) saturate(1.12);
+}
+.relay-stage .desk-bounce {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    ellipse at var(--ember-x, 67%) var(--ember-y, 44%),
+    #ffc78564,
+    #ea7d3b28 24%,
+    transparent 63%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+.room-light-on .relay-stage[data-reel='entrance'] .desk-bounce {
+  opacity: 0.92;
+}
+.result-dial {
+  position: fixed;
+  z-index: 8;
+  display: flex;
+  gap: 3px;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  background: #24170fdd;
+  border: 1px solid #ffe1b75c;
+  padding: 4px 7px;
+  border-radius: 99px;
+  backdrop-filter: blur(14px);
+}
+.result-dial a {
+  width: 39px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 99px;
+}
+.result-dial a i {
+  width: 12px;
+  height: 2px;
+  border-radius: 5px;
+  background: #e1b28a;
+}
+.result-dial a:is(:hover, :focus-visible, [aria-current='location']) {
+  background: #ad754a4f;
+}
+.result-dial a:is(:hover, :focus-visible, [aria-current='location']) i {
+  background: #ffe4c2;
+  width: 18px;
+  box-shadow: 0 0 12px #ffa259af;
+}
+.result-preview {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  width: 194px;
+  transform: translate(-50%, 8px);
+  background: #241811;
+  border: 1px solid #c9a48082;
+  overflow: hidden;
+  border-radius: 12px;
+  opacity: 0;
+  pointer-events: none;
+}
+.result-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.result-preview span {
+  display: block;
+  padding: 8px 11px;
+  font-size: 0.76rem;
+}
+.result-dial[data-preview] .result-preview {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .desk-bounce {
+    transition: opacity 0.45s ease;
+  }
+  .hero .scene-art img {
+    transition: filter 0.5s ease;
+  }
+  .result-dial a,
+  .result-dial a i,
+  .result-preview,
+  .room-light i {
+    transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .result-dial a:active {
+    scale: 0.88;
+  }
+  .copy-reveal.copy-arrived
+    > :is(.kicker, h1, h2, .stat, .lede, .actions, .channels) {
+    animation: enter-copy 0.67s cubic-bezier(0.23, 0.77, 0.29, 1) both;
+  }
+  .copy-reveal.copy-arrived > :is(h1, h2) {
+    animation-delay: 70ms;
+  }
+  .copy-reveal.copy-arrived > :is(.stat, .lede) {
+    animation-delay: 125ms;
+  }
+  .copy-reveal.copy-arrived > :is(.actions, .channels) {
+    animation-delay: 180ms;
+  }
+  @keyframes enter-copy {
+    from {
+      opacity: 0.23;
+      translate: 0 12px;
+      clip-path: inset(0 0 18% 0);
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+      clip-path: inset(-12% -12% -12% -12%);
+    }
+  }
+}
+@media (max-width: 760px) {
+  .room-light {
+    bottom: 14px;
+    right: var(--gutter);
+    font-size: 0.67rem;
+    padding: 7px 9px;
+  }
+  .result-dial a {
+    width: 33px;
+    height: 28px;
+  }
+}
+
+.room-roster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 465px;
+  margin-top: 26px;
+}
+.room-roster a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  color: #f4ddcb;
+  border-radius: 6px;
+  border: 1px solid #ffe2bc45;
+  background:
+    radial-gradient(
+      ellipse at var(--light-x, 20%) var(--light-y, 20%),
+      #e1a67833,
+      transparent 90%
+    ),
+    #261a149e;
+  font:
+    500 0.72rem/1.5 'DM Sans',
+    sans-serif;
+}
+.room-roster b {
+  font-weight: 400;
+  color: var(--ember);
+  display: inline-block;
+}
+.room-roster a:is(:hover, :focus-visible) {
+  border-color: #ffe2b9aa;
+  color: white;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .room-roster a,
+  .room-roster b {
+    transition:
+      transform 0.24s ease,
+      color 0.24s ease,
+      border-color 0.24s ease;
+  }
+  .room-roster a:is(:hover, :focus-visible) {
+    transform: translateY(-3px);
+  }
+  .room-roster a:is(:hover, :focus-visible) b {
+    transform: translate(2px, -2px);
+  }
+  .scroll-cue:hover i,
+  .scroll-cue:focus-visible i {
+    animation: cue-drop 0.9s ease-in-out infinite alternate;
+  }
+  @keyframes cue-drop {
+    to {
+      transform: rotate(45deg) translate(2px, 2px);
+    }
+  }
+}
+
+.cup-steam {
+  position: absolute;
+  top: 50%;
+  left: 56%;
+  width: min(15vw, 260px);
+  height: 24vh;
+  opacity: 0;
+  background: url('/relay/mist.webp') center/100% 100%;
+  mask-image: radial-gradient(ellipse, #000 4%, transparent 72%);
+  mix-blend-mode: screen;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .relay-stage[data-reel='entrance'] .cup-steam {
+    animation: steam-rise 4.5s linear infinite;
+  }
+  @keyframes steam-rise {
+    0% {
+      opacity: 0;
+      transform: translate(12%, 25%) scale(0.45, 0.66);
+    }
+    33% {
+      opacity: 0.26;
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-10%, -26%) scale(0.85, 1.35);
+    }
+  }
+}
+@media (max-aspect-ratio: 1/1) {
+  .cup-steam {
+    left: 44%;
+    top: 48%;
+    width: 31vw;
+  }
+}
