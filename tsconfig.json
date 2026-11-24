@@ -1,1 +1,1 @@
-{"compilerOptions":{"target":"ES2022","module":"ESNext","moduleResolution":"Bundler","strict":true,"lib":["DOM","DOM.Iterable","ES2022"],"types":["vite/client"],"skipLibCheck":true},"include":["*.ts"]}
+{"compilerOptions":{"target":"ES2022","module":"ESNext","moduleResolution":"Bundler","resolveJsonModule":true,"strict":true,"lib":["DOM","DOM.Iterable","ES2022"],"types":["vite/client"],"skipLibCheck":true},"include":["*.ts"]}
