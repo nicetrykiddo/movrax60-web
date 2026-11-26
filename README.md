@@ -1,13 +1,15 @@
 # movrax60
 
-A live 3D room for an international cybersecurity CTF team. Scroll to move between the mascot, roster, competition highlights and contact. Drag the mascot to turn it, or tap it to wave. The character also supports arrow keys and Enter. The competition stations have a button that opens their display plates.
+A Next.js site for the international CTF team. The home and member routes are prerendered. The optical workbench loads separately in the browser, using Three.js and Anime.js.
 
-The homepage is at `/` and the player directory is at `/members/`. Each result and member can be linked directly. All team copy and navigation ship as HTML. A browser without WebGL or JavaScript still gets the complete team information. Reduced motion stops the idle movement and switches camera poses directly.
+## Local development
 
-## Run and deploy
+Run `npm ci` and `npm run dev`. For a production preview use `npm run build` and `npm start`. Vercel can use its Next.js preset. Run `npm test` for the production browser checks (requires Google Chrome).
 
-Run `npm ci` and `npm run dev` for the local preview. Vercel uses `npm run build` and serves `dist/`. Run `npm test` for the Chrome checks.
+## Content and controls
 
-Edit `records.json` for results, roster and contact details. Telegram, Discord, and email turn into links when their URL values are filled in. The Hack The Box placement retains its player-reported attribution.
+Edit `records.json` for competition results, member information and contacts. Telegram, Discord and email become links when their URLs are filled in. The Hack The Box result retains its player-reported attribution.
 
-The room, lighting, and mascot geometry render at runtime with Three.js. The mascot is extruded from the outline and enamel paths traced from the team's original drawing. Room surfaces use procedural shading and the site requests no picture or video assets.
+Click the relay to send a pulse, drag horizontally to orbit or use the arrow keys when the model has focus. Lift the cover to inspect the electronics. Native scrolling moves the camera from the three launch ferrules along the optical loom to its nine receiver sockets. Reduced motion disables continuous camera and light animation.
+
+The original Blender model is built by `art/optic/model.py` and served as `public/models/relay.glb`. The instanced loom has 4,608 strands and 1,024 spans per strand at full detail. The renderer selects a subset based on the adapter and observed frame intervals.
