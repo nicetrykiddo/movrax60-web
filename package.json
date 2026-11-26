@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "test": "npm run build && playwright test"
+    "dev": "next dev",
+    "build": "next build",
+    "preview": "next start",
+    "test": "npm run build && playwright test",
+    "start": "next start"
   },
   "repository": {
     "type": "git",
@@ -20,13 +21,17 @@
   "homepage": "https://github.com/nicetrykiddo/movrax60-web#readme",
   "devDependencies": {
     "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.10",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
     "@types/three": "^0.187.0",
-    "typescript": "^7.0.2",
-    "vite": "^8.3.8"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "animejs": "^4.5.0",
-    "gsap": "^3.15.1",
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "three": "^0.187.0"
   }
 }

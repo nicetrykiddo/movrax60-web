@@ -1,103 +1,30 @@
-import gsap from 'gsap';
-import { mountCinema } from './cinema';
+import { animate } from 'animejs/animation';
 
-const entry = performance.getEntriesByType('navigation')[0] as
-  | PerformanceNavigationTiming
-  | undefined;
-if (entry?.type === 'navigate' && scrollY === 0 && location.hash.length > 1) {
-  document
-    .getElementById(location.hash.slice(1))
-    ?.scrollIntoView({ block: 'start', behavior: 'instant' });
-}
-
-gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
-  const highlights = document.querySelectorAll<HTMLElement>(
-    '.button,.sound,.player-plate,.plate-step,.player-index a,nav a,.source-links a,.channel,.text-link,.scroll-cue',
-  );
-  function reflect(this: HTMLElement, event: PointerEvent) {
-    const bounds = this.getBoundingClientRect();
-    this.style.setProperty(
-      '--light-x',
-      `${((event.clientX - bounds.left) / bounds.width) * 100}%`,
-    );
-    this.style.setProperty(
-      '--light-y',
-      `${((event.clientY - bounds.top) / bounds.height) * 100}%`,
-    );
-  }
-  const held = new Map<HTMLElement, Animation>();
-  function press(this: HTMLElement, event: PointerEvent) {
-    if (event.button !== 0) return;
-    held.get(this)?.cancel();
-    held.set(
-      this,
-      this.animate([{ scale: '1' }, { scale: '.958' }], {
-        duration: 120,
-        easing: 'ease-out',
-        fill: 'forwards',
-      }),
-    );
-  }
-  function release(this: HTMLElement) {
-    if (!held.has(this)) return;
-    held.get(this)?.cancel();
-    held.delete(this);
-    this.animate(
-      [{ scale: '.958' }, { scale: '1.017', offset: 0.56 }, { scale: '1' }],
-      { duration: 270, easing: 'ease-out' },
-    );
-  }
-  const resetEvents = ['pointerup', 'pointercancel', 'pointerleave'] as const;
-  highlights.forEach((item) => {
-    item.addEventListener('pointerdown', press);
-    resetEvents.forEach((event) => item.addEventListener(event, release));
+export function attachInterface() {
+  const owner = new AbortController();
+  const { signal } = owner;
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  let dispose: (() => void) | undefined;
+  void import('./cinema').then(({mountCinema})=>{
+    if(signal.aborted)return;
+    function mount(){dispose?.();dispose=mountCinema(motion.matches);}
+    mount();
+    motion.addEventListener('change',mount,{signal});
   });
-  highlights.forEach((item) =>
-    item.addEventListener('pointermove', reflect, { passive: true }),
-  );
-  const reveals = document.querySelectorAll<HTMLElement>(
-    '.story-scene .scene-copy',
-  );
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.classList.add('copy-arrived');
-        observer.unobserve(entry.target);
-      }
-    },
-    { threshold: 0.19 },
-  );
-  reveals.forEach((copy) => {
-    copy.classList.add('copy-reveal');
-    observer.observe(copy);
+  const observer = new IntersectionObserver(entries=>{
+    for(const entry of entries){
+      if(!entry.isIntersecting)continue;
+      if(!motion.matches)animate(entry.target,{opacity:[.64,1],y:[9,0],duration:430,ease:'outCubic'});
+      observer.unobserve(entry.target);
+    }
   });
-  return () => {
-    observer.disconnect();
-    reveals.forEach((copy) =>
-      copy.classList.remove('copy-reveal', 'copy-arrived'),
-    );
-    held.forEach((animation) => animation.cancel());
-    highlights.forEach((item) => {
-      item.removeEventListener('pointerdown', press);
-      resetEvents.forEach((event) => item.removeEventListener(event, release));
-    });
-    highlights.forEach((item) =>
-      item.removeEventListener('pointermove', reflect),
-    );
-  };
-});
-
-gsap.matchMedia().add(
-  {
-    motion: '(prefers-reduced-motion: no-preference)',
-    still: '(prefers-reduced-motion: reduce)',
-  },
-  (context) => {
-    return mountCinema(Boolean(context.conditions?.still));
-  },
-);
-
+  document.querySelectorAll('.scene-copy').forEach(el=>observer.observe(el));
+  window.addEventListener('relay:pulse',()=>{
+    const status=document.querySelector('#pulse-status');
+    if(status)status.textContent='Pulse transmitted';
+    const glyph=document.querySelector('.pulse-glyph');
+    if(glyph&&!motion.matches)animate(glyph,{scale:[1,1.6,1],duration:540});
+  },{signal});
 const results = document.querySelector<HTMLElement>('.result-dial');
 if (results) {
   const controls = [...results.querySelectorAll<HTMLAnchorElement>('a')];
@@ -128,14 +55,14 @@ if (results) {
       results.dataset.preview = '';
     };
     const hide = () => delete results.dataset.preview;
-    link.addEventListener('pointerenter', show);
-    link.addEventListener('focus', show);
-    link.addEventListener('pointerleave', hide);
-    link.addEventListener('blur', hide);
-    link.addEventListener('click', hide);
+    link.addEventListener('pointerenter', show, {signal});
+    link.addEventListener('focus', show, {signal});
+    link.addEventListener('pointerleave', hide, {signal});
+    link.addEventListener('blur', hide, {signal});
+    link.addEventListener('click', hide, {signal});
   });
-  addEventListener('scroll', track, { passive: true });
-  addEventListener('resize', track, { passive: true });
+  addEventListener('scroll', track, { passive: true, signal });
+  addEventListener('resize', track, { passive: true, signal });
   track();
 }
 
@@ -186,9 +113,9 @@ if (directory && plates.length) {
     () => {
       if (!scheduled) scheduled = requestAnimationFrame(follow);
     },
-    { passive: true },
+    { passive: true, signal },
   );
-  addEventListener('resize', follow, { passive: true });
+  addEventListener('resize', follow, { passive: true, signal });
   function step(direction: number, moveFocus: boolean) {
     const target = Math.min(
       plates.length - 1,
@@ -199,13 +126,13 @@ if (directory && plates.length) {
     if (moveFocus) control.focus({ preventScroll: true });
     control.click();
   }
-  previous.addEventListener('click', () => step(-1, false));
-  next.addEventListener('click', () => step(1, false));
+  previous.addEventListener('click', () => step(-1, false), {signal});
+  next.addEventListener('click', () => step(1, false), {signal});
   directory.addEventListener('keydown', (event) => {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
     event.preventDefault();
     step(event.key === 'ArrowRight' ? 1 : -1, true);
-  });
+  }, {signal});
 }
 
 const soundButton = document.querySelector<HTMLButtonElement>('.sound');
@@ -245,6 +172,9 @@ if (soundButton) {
     enabled = !enabled;
     showSound();
     void playSound();
-  });
-  document.addEventListener('visibilitychange', () => void playSound());
+  }, {signal});
+  document.addEventListener('visibilitychange', () => void playSound(), {signal});
+}
+
+  return ()=>{ owner.abort(); observer.disconnect(); dispose?.(); enabled=false; audio?.pause(); };
 }
