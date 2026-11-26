@@ -16,7 +16,7 @@ const shot = (aim:T.Vector3, eye:T.Vector3, width:number):Shot => ({aim,eye:eye.
 // Each shot uses a different physical point on the same piece of optical equipment.
 // Width is the framing in world units, independent of the device's field of view.
 const sequence = [
-  shot(V(.06,.03,0), V(3.55,3.7,6.4), 7.25),
+  shot(V(.37,.06,-.16), V(4.25,3.15,5.65), 8.65),
   shot(V(.35,.09,-.06), V(-2.1,4.1,4.45), 5.65),
   shot(V(1.98,.02,-.14), V(4.2,2.0,3.4), 3.9),
   shot(pointOnLoom(.33), V(1.9,1.5,2.6), 4.8),
@@ -48,7 +48,11 @@ function buildReflection(renderer:T.WebGLRenderer) {
 }
 
 function lightRoom(world:T.Scene) {
-  const key=new T.DirectionalLight(0xffe8c8,2.4);
+  const key=new T.DirectionalLight(0xffdfb5,2.7);
+  key.castShadow=true;
+  key.shadow.mapSize.set(2048,2048);
+  Object.assign(key.shadow.camera,{left:-4.6,right:4.6,top:4.6,bottom:-4.6,near:.2,far:18});
+  key.shadow.camera.updateProjectionMatrix();key.shadow.bias=-.00015;key.shadow.normalBias=.011;
   key.position.set(-3,6,3);world.add(key);
   const edge=new T.DirectionalLight(0xb9efed,1.95);
   edge.position.set(3,4,-4);world.add(edge);
@@ -71,6 +75,18 @@ function releaseScene(root:T.Object3D) {
   materials.forEach(m=>m.dispose());
 }
 
+function machinedFinish(material:T.MeshStandardMaterial) {
+  material.onBeforeCompile=shader=>{
+    shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 localPoint;').replace('#include <begin_vertex>','#include <begin_vertex>\nlocalPoint=position;');
+    shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 localPoint;')
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        float along=localPoint.x*19.+localPoint.z*1300.+localPoint.y*1200.;
+        float visible=1.-smoothstep(.4,3.4,fwidth(along));
+        float brush=sin(along+sin(localPoint.x*21.)*.45)*visible;
+        roughnessFactor=clamp(roughnessFactor+.042*brush,.09,.98);
+      `);
+  };
+}
 function qualityCeiling(renderer:T.WebGLRenderer):FibreQuality {
   const gl=renderer.getContext();
   const info=gl.getExtension('WEBGL_debug_renderer_info');
@@ -94,12 +110,16 @@ export function mountCinema(reducedMotion = false) {
   document.body.prepend(canvas);
   const world=new T.Scene();
   world.background=new T.Color(0x0a1415);
-  world.fog=new T.FogExp2(0x142426,.035);
+  world.fog=new T.FogExp2(0x091215,.070);
   renderer.toneMapping=T.ACESFilmicToneMapping;
   renderer.toneMappingExposure=1.02;
   const reflection=buildReflection(renderer);
   world.environment=reflection.texture;
-  world.environmentIntensity=.93;
+  world.environmentIntensity=.83;
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=T.PCFShadowMap;
+  renderer.shadowMap.autoUpdate=false;
+  renderer.shadowMap.needsUpdate=true;
   const practical=lightRoom(world);
   const ceiling=qualityCeiling(renderer);
   let quality:FibreQuality=ceiling==='low' ? 'low' : 'balanced';
@@ -107,6 +127,9 @@ export function mountCinema(reducedMotion = false) {
   const bench=makeBench(pointOnLoom(.67),pointOnLoom(1),V(-.8,0,-.6));
   loom.group.position.copy(port);
   world.add(bench.stage,loom.group);
+  const contactShadow=new T.Mesh(new T.PlaneGeometry(18,18),new T.ShadowMaterial({opacity:.50,depthWrite:false}));
+  contactShadow.rotation.x=-Math.PI/2;contactShadow.position.y=-.699;contactShadow.receiveShadow=true;
+  world.add(contactShadow);
   const camera=new T.PerspectiveCamera(33,1,.06,95);
   const subject=V(0,0,0), eye=V(0,0,0);
   const surfaces=[...document.querySelectorAll<HTMLButtonElement>('.instrument-surface')];
@@ -122,7 +145,7 @@ export function mountCinema(reducedMotion = false) {
   document.body.append(surface);
   const action=document.querySelector<HTMLButtonElement>('.pulse-action');
   const coverButton=document.querySelector<HTMLButtonElement>('[data-cover]');
-  const home=document.body.classList.contains('home');
+  const home=!!document.getElementById('identity');
   const controls=[surface,action,coverButton].filter((b):b is HTMLButtonElement=>!!b);
   const stops:number[]=[];
   let cameraShots:Shot[]=[];
@@ -132,6 +155,7 @@ export function mountCinema(reducedMotion = false) {
   let lastTime=0, sinceAssessment=0, frameCount=0, slow=0, fast=0;
   let drawScale=1, qualityStep=quality==='low'?0:1, limited=false;
   const layers:FibreQuality[]=['low','balanced','high','full'];
+  let previousLift=-1;
   let lastCue=-1, cover:T.Object3D|undefined, led:T.MeshStandardMaterial|undefined;
   let turn=0, tilt=0, orbit=0, elevation=0;
   let cursorX=0,cursorY=0, glideX=0,glideY=0;
@@ -207,11 +231,11 @@ export function mountCinema(reducedMotion = false) {
     opened=!opened;
     coverButton?.setAttribute('aria-pressed',String(opened));
     canvas.dataset.cover=opened?'open':'closed';
+    const label=coverButton?.querySelector('.cover-label');if(label)label.textContent=opened?'Lower cover':'Lift cover';
     coverAnimation?.cancel();
     if(reducedMotion){mechanism.lift=Number(opened);schedule();return;}
-    coverAnimation=animate(mechanism,{lift:Number(opened),duration:openDuration(),ease:'inOutCubic',onUpdate:schedule});
+    coverAnimation=animate(mechanism,{lift:Number(opened),duration:opened?890:755,ease:'inOutCubic',onUpdate:schedule});
   }
-  function openDuration(){return opened?890:755;}
   action?.addEventListener('click',pulse,{signal});
   coverButton?.addEventListener('click',toggleCover,{signal});
   surface.addEventListener('click',e=>{if(!dragged || e.detail===0)pulse();dragged=false;},{signal});
@@ -274,7 +298,7 @@ export function mountCinema(reducedMotion = false) {
     eye.lerpVectors(a.eye,b.eye,p).normalize();
     const theta=Math.atan2(eye.x,eye.z)+orbit+glideX*.055;
     const phi=clamp(Math.asin(eye.y)+elevation+glideY*.04,.15,1.32);
-    const shotWidth=mix(a.width,b.width,p);
+    const shotWidth=mix(narrow&&i===0&&home?6.65:a.width,narrow&&j===0&&home?6.65:b.width,p);
     const visibleHeight=narrow ? shotWidth / (width/height) * .78 : shotWidth/1.53;
     const distance=visibleHeight/(2*Math.tan(T.MathUtils.degToRad(camera.fov)*.5));
     camera.position.set(Math.sin(theta)*Math.cos(phi),Math.sin(phi),Math.cos(theta)*Math.cos(phi)).multiplyScalar(distance).add(subject);
@@ -288,7 +312,10 @@ export function mountCinema(reducedMotion = false) {
     const flash=mechanism.packet>=0?Math.exp(-Math.abs(mechanism.packet)*12):0;
     practical.intensity=.68+flash*8;
     if(led)led.emissiveIntensity=1.9+flash*5;
-    if(cover){cover.position.y=.90*mechanism.lift;cover.rotation.z=.055*mechanism.lift;}
+    if(cover && previousLift!==mechanism.lift){
+      cover.position.y=.90*mechanism.lift;cover.rotation.z=.055*mechanism.lift;
+      renderer.shadowMap.needsUpdate=true;previousLift=mechanism.lift;
+    }
     bench.prism.rotation.y=.26+(reducedMotion?0:.10*Math.sin(now*.00032))+clamp(mechanism.packet,0,1)*.36;
     bench.pin.emissiveIntensity=.65+(mechanism.packet>0?2.5*Math.exp(-Math.abs(1-mechanism.packet)*14):0);
     loom.update(reducedMotion?0:now*.001,mechanism.packet);
@@ -330,7 +357,9 @@ export function mountCinema(reducedMotion = false) {
     model.traverse(node=>{
       if(!(node instanceof T.Mesh))return;
       const m=node.material as T.MeshStandardMaterial;
+      node.castShadow=!m.transparent;node.receiveShadow=!m.transparent;
       if(m.name==='Fibre emission')led=m;
+      if (/aluminium|Pewter|Manganese|soldermask/.test(m.name)) machinedFinish(m);
       if(m.name==='Neutral smoked cover'){m.depthWrite=false;node.renderOrder=2;}
     });
     world.add(model);
