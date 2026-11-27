@@ -1,6 +1,8 @@
 # movrax60 website redesign
 
-[Editable Figma design](https://www.figma.com/design/G8mvXnXLGkwDm8vQDvsmBV) · [Desktop home](https://www.figma.com/design/G8mvXnXLGkwDm8vQDvsmBV?node-id=2-37) · [Mobile home](https://www.figma.com/design/G8mvXnXLGkwDm8vQDvsmBV?node-id=3-6) · [Desktop roster](https://www.figma.com/design/G8mvXnXLGkwDm8vQDvsmBV?node-id=3-181)
+[Editable OpenPencil document](./movrax60-after-hours.fig) · [Figma reference](https://www.figma.com/design/G8mvXnXLGkwDm8vQDvsmBV)
+
+Open the local `.fig` in [OpenPencil](https://github.com/open-pencil/open-pencil/releases), the MIT-licensed editor. The layers and text are editable. The hero art uses Blender stills. Eight artboards cover desktop and mobile, the opened menu, a lifted flag, the next archive selection, and an annotated scroll map. The local document was authored and exported with [OpenPencil CLI](https://github.com/open-pencil/open-pencil). [Penpot](https://github.com/penpot/penpot) is an alternative for a shared self-hosted workspace.
 
 ## Visual direction
 
@@ -30,6 +32,18 @@ The first screen says **movrax60**, identifies the team as an international CTF 
 | Motion | [Anime.js](https://animejs.com/documentation/animation/), [Three.js](https://threejs.org/docs/) | Use the installed libraries. Animate the cloth response, archive focus and content transitions. Keep normal browser scrolling and link behavior. |
 
 The pill navbar is a visual and interaction component. The desktop links retain navigation semantics. The mobile menu uses a dialog, with focus handling from its library. Preserve the notices when vendoring source and record the imported component version in its commit.
+
+## Button and scroll behavior
+
+| Input | Expected behavior |
+| --- | --- |
+| Home, Results or Contact | Go to the named section directly and update the active pill as the section enters the viewport. Retain the URL hash for linking and browser history. |
+| Members or a player handle | Open the roster route. A handle opens its profile directly and marks the selected row. |
+| Pick up the fold or press Enter on the flag | Toggle the lifted pose in place. Horizontal drag previews the same motion. Releasing settles to the nearest pose. A vertical touch gesture continues to scroll. |
+| Scroll past the flag | The camera moves toward the hem and the warm highlight reveals the archive. The reverse scroll plays the same camera path backward. A direct Results link enters at the archive. |
+| Competition arrow, edition spine, swipe or arrow key | Show the selected cover and its score together. The event navigation stays in place. Previous and Next stop at the first and last record. |
+| Mobile menu | Open the list of page destinations. Escape and the close button return focus to the trigger. Choosing a destination closes the menu and moves to that section or route. |
+| Sound toggle or Back to top | Sound starts muted. Back to top returns to the flag and restores the Home pill. |
 
 ## Implementation plan
 
