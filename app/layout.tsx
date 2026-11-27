@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'movrax60 — International CTF team',
   description: 'movrax60 is an international capture the flag team. Meet the players and explore selected competition results.',
 };
-export const viewport: Viewport = { themeColor: '#0b1516', viewportFit: 'cover' };
+export const viewport: Viewport = { themeColor: '#160f1a', viewportFit: 'cover' };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
