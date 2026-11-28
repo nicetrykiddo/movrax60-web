@@ -80,7 +80,7 @@ export default function HomePage() {
         <button
           className="grab"
           type="button"
-          aria-label="Grab the flag. Drag horizontally or press to lift."
+          aria-label="Grab and drag the cloth. Press Enter to lift the hem."
           aria-pressed="false"
         />
         <button className="fold" type="button" aria-pressed="false">

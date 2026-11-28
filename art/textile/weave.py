@@ -58,7 +58,7 @@ raw = textile("Raw silk", (.30, .106, .064))
 hero_pos = (1.80, -.18, 1.65)
 
 
-def surface(u, v, loc=hero_pos, w=4.35, h=3.49, yaw=.11, phase=.31):
+def drape(u, v, loc=hero_pos, w=4.35, h=3.49, yaw=.11, phase=.31):
     x = (u-.5)*w + .43*sin(v*2.2+phase)*(u-.24) + .18*(v-.5)
     d = (.41*sin(u*8.6+phase+v*.85) + .17*sin(u*16.1-v*5.3)
          + .22*(1-v)*sin(u*4.6+phase) + .037*sin(28*u+7*v)*(1-v)**2)
@@ -67,17 +67,33 @@ def surface(u, v, loc=hero_pos, w=4.35, h=3.49, yaw=.11, phase=.31):
                    loc[1]+sin(yaw)*x+cos(yaw)*d, loc[2]+z))
 
 
-def displacement(p, amount):
-    x, y, z = p
-    free = max(0, min(1, (x+.5)/4.65))
-    hem = max(0, min(1, (3.8-z)/3.9))
-    strength = free**1.35 * (.22+1.25*hem)
-    if amount == "Lift":
-        return Vector((-.59*strength, -1.02*strength, 1.16*strength))
-    return Vector((.34*strength, strength*.35*sin(2.9*x+.74*z), .10*strength))
+hoist_bottom = drape(0, 0)
+hoist_top = drape(0, 1)
 
 
-def make_mesh(name, verts, faces, mats, uv=None, morph=False):
+def surface(u, v):
+    # Blend the shaped silk into a straight edge where it hangs from the hoist.
+    t = max(0, min(1, u/.16))
+    return drape(u, v) + (hoist_bottom.lerp(hoist_top, v) - drape(0, v))*(1-t*t*(3-2*t))
+
+
+def cloth_coordinates(point):
+    # X and height are monotonic in the cloth coordinates. Invert both
+    # together to bind stitch tubes and the fringe to the underlying fabric.
+    u = (point.x-hero_pos[0])/4.35+.5
+    v = (point.z-hero_pos[2])/3.49+.5
+    for _ in range(5):
+        pos = surface(u, v)
+        du = (surface(u+.001, v)-pos)*1000
+        dv = (surface(u, v+.001)-pos)*1000
+        dx, dz = point.x-pos.x, point.z-pos.z
+        det = du.x*dv.z-du.z*dv.x
+        u += (dx*dv.z-dz*dv.x)/det
+        v += (du.x*dz-du.z*dx)/det
+    return (max(0, min(1, u)), max(0, min(1, v)), 0)
+
+
+def make_mesh(name, verts, faces, mats, uv=None, binding=None):
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(verts, [], faces)
     mesh.update()
@@ -91,12 +107,9 @@ def make_mesh(name, verts, faces, mats, uv=None, morph=False):
         layer = mesh.uv_layers.new()
         for loop in mesh.loops:
             layer.data[loop.index].uv = uv[loop.vertex_index]
-    if morph:
-        obj.shape_key_add(name="Rest")
-        for label in ("Lift", "Draw"):
-            key = obj.shape_key_add(name=label)
-            for vert, point in zip(mesh.vertices, key.data):
-                point.co = vert.co + displacement(vert.co, label)
+    cloth = mesh.attributes.new("_CLOTH", "FLOAT_VECTOR", "POINT")
+    coords = ((u, v, 0) for u, v in binding) if binding is not None else map(cloth_coordinates, verts)
+    cloth.data.foreach_set("vector", [coord for point in coords for coord in point])
     return obj
 
 
@@ -124,7 +137,7 @@ def make_flag(name, nx, ny, position, material, crest=False):
         faces = [(i, i+1, i+nx+2, i+nx+1) for y in range(ny) for x in range(nx)
                  for i in [y*(nx+1)+x]]
     obj = make_mesh(name, [position(u,v) for u,v in uv], faces,
-                    [material, copper] if crest else [material], uv, crest)
+                    [material, copper] if crest else [material], uv, uv)
     if crest:
         source = bpy.data.images.load(str(ROOT/"art/pin/original.png"))
         size = source.size[0]
@@ -140,7 +153,7 @@ def make_flag(name, nx, ny, position, material, crest=False):
 
 
 make_flag("01 | House standard", 65, 55, surface, wine, True)
-# Tubular chain stitches and unravelled yarn share one mesh and two pose keys.
+# Tubular chain stitches and unravelled yarn share the cloth binding.
 verts, faces, thread_materials = [], [], []
 def yarn(points, radius, material_index):
     start = len(verts)
@@ -173,7 +186,7 @@ for i in range(285):
     start = surface(u,0)
     end = start+Vector((rng.uniform(-.036,.036),rng.uniform(-.045,.045),-rng.uniform(.048,.16)))
     yarn([start,start.lerp(end,.5)+Vector((.012,.007,0)),end],rng.uniform(.0026,.0046),int(i%4!=0))
-threads = make_mesh("05 | Hem and fringe",verts,faces,[selvedge,raw],morph=True)
+threads = make_mesh("05 | Hem and fringe",verts,faces,[selvedge,raw])
 for face, index in zip(threads.data.polygons,thread_materials):
     face.material_index = index
 
@@ -185,7 +198,7 @@ def stitch_point(u, v, offset=.014):
 
 
 def transfer_yarn(name, materials):
-    obj = make_mesh(name, verts, faces, materials, morph=True)
+    obj = make_mesh(name, verts, faces, materials)
     for face, index in zip(obj.data.polygons, thread_materials):
         face.material_index = index
     verts.clear()
@@ -229,7 +242,7 @@ nx,ny=28,12
 uv=[(x/nx,y/ny) for y in range(ny+1) for x in range(nx+1)]
 label_faces=[(i,i+nx+1,i+nx+2,i+1) for y in range(ny) for x in range(nx) for i in [y*(nx+1)+x]]
 make_mesh("Roster_label",[stitch_point(.623+u*.266,.192+v*.184,-.027) for u,v in uv],
-          label_faces,[plum],uv,True)
+          label_faces,[plum],uv)
 for v in (.20,.368):
     yarn([stitch_point(.63+i*.25/70,v,-.036) for i in range(71)],.0055,0)
 for u in (.63,.88):
@@ -278,4 +291,4 @@ for obj in rig.objects:
     obj.select_set(True)
 bpy.ops.wm.save_as_mainfile(filepath=str(HERE/"standard.blend"),compress=True)
 bpy.ops.export_scene.gltf(filepath=str(ROOT/"public/models/standard.glb"),use_selection=True,
-                          export_morph_normal=False,export_animations=False)
+                          export_attributes=True,export_animations=False)

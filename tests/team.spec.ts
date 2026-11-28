@@ -126,7 +126,7 @@ test('the Blender scene loads and the fold responds to keyboard and drag', async
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await expect(page.locator('.loom[data-ready]')).toBeVisible({ timeout: 20000 });
-  const lift = page.getByRole('button', { name: /pick up the fold|lift the hem/i });
+  const lift = page.getByRole('button', { name: 'Lift the hem', exact: true });
   await lift.press('Enter');
   const lower = page.getByRole('button', { name: /lower the (fold|hem)/i });
   await expect(lower).toHaveAttribute('aria-pressed', 'true');
@@ -140,7 +140,7 @@ test('the Blender scene loads and the fold responds to keyboard and drag', async
   await page.mouse.down();
   await page.mouse.move(x + Math.min(260, bounds.width * 0.65), y - 10, { steps: 12 });
   await page.mouse.up();
-  await expect(lower).toHaveAttribute('aria-pressed', 'true');
+  await expect(lift).toHaveAttribute('aria-pressed', 'false');
   await page.getByRole('link', { name: /explore results/i }).click();
   await expect(page.getByRole('heading', { name: resultTitles[0], exact: true })).toBeInViewport();
   await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));

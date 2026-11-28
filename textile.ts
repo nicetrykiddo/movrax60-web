@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { clothResponseShader, createClothResponse } from './cloth-response';
+import { ClothSimulation, clothShader } from './cloth-response';
+import { flagSurface, hoistPivot } from './flag-surface';
 import { cameraPose, filmProgress, readingIndex, stops } from './flag-track';
 const clamp = THREE.MathUtils.clamp,
   lerp = THREE.MathUtils.lerp;
@@ -11,32 +12,27 @@ const smooth = (a: number, b: number, x: number) =>
 function shadeSilk(
   material: THREE.MeshStandardMaterial,
   woven: boolean,
-  clock: { value: number },
-  cloth: ReturnType<typeof createClothResponse>,
+  cloth: ClothSimulation,
 ) {
   material.side = THREE.DoubleSide;
   material.onBeforeCompile = (shader) => {
-    shader.uniforms.loomTime = clock;
-    shader.uniforms.clothPress = { value: cloth.press };
-    shader.uniforms.clothWaves = { value: cloth.waves };
+    shader.uniforms.clothDelta = { value: cloth.delta };
+    shader.uniforms.clothRotation = { value: cloth.rotation };
     shader.vertexShader =
-      clothResponseShader +
+      clothShader +
       'varying vec2 loomUV;\n' +
       shader.vertexShader
-        .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
-          vec3 clothChange = clothDeformation(position.xy);
-          objectNormal.xy -= objectNormal.z * clothChange.yz;`)
         .replace(
-          '#include <begin_vertex>',
-          '#include <begin_vertex>\nloomUV = uv;',
+          '#include <beginnormal_vertex>',
+          `#include <beginnormal_vertex>
+        vec4 rotation = normalize(sampleCloth(clothRotation));
+        objectNormal = rotateWithCloth(objectNormal, rotation);`,
         )
         .replace(
-          '#include <morphtarget_vertex>',
-          `#include <morphtarget_vertex>
-        float freedom=.22+.19*clamp(3.65-position.y,0.,3.8);
-        transformed.z+=freedom*(.052*sin(position.x*2.25+position.y*.81+loomTime*.72)+.015*sin(position.y*3.1-position.x+loomTime*.95));
-        transformed.y+=freedom*.021*sin(position.x*1.9+loomTime*.8);
-        transformed.z += clothChange.x;`,
+          '#include <begin_vertex>',
+          `#include <begin_vertex>
+        loomUV = uv;
+        transformed += sampleCloth(clothDelta).xyz + rotateWithCloth(clothOffset, rotation) - clothOffset;`,
         );
     if (material.name === 'Copper brocade')
       shader.fragmentShader = shader.fragmentShader.replace(
@@ -99,8 +95,12 @@ export function mountTextile() {
     bounce,
     new THREE.HemisphereLight(0xf1c2a7, 0x29172c, 0.76),
   );
-  const response = createClothResponse();
+  const simulation = new ClothSimulation();
   const cloth = new THREE.Group();
+  cloth.name = 'Hoist pivot';
+  cloth.position.copy(hoistPivot);
+  simulation.collider.visible = false;
+  cloth.add(simulation.collider);
   scene.add(cloth);
   const shadow = new THREE.Mesh(
     new THREE.PlaneGeometry(12, 6),
@@ -138,8 +138,7 @@ export function mountTextile() {
     }),
   );
   scene.add(dust);
-  const meshes: THREE.Mesh[] = [],
-    morphs: THREE.Mesh[] = [];
+
   const ray = new THREE.Raycaster(),
     ndc = new THREE.Vector2();
   function releaseResources(root: THREE.Object3D) {
@@ -168,10 +167,8 @@ export function mountTextile() {
     last = 0,
     progress = 0,
     reading = 0;
-  let lift = 0,
-    desired = 0,
-    drawn = 0,
-    tension = 0,
+  let desired = false,
+    quietPose: boolean | null = null,
     look = 0,
     pointer = 0,
     width = 1,
@@ -182,16 +179,22 @@ export function mountTextile() {
     x: number;
     y: number;
     id: number;
-    initial: number;
-    contact: THREE.Vector3 | null;
-    direction: number;
-    horizontal: boolean;
+    grip: {
+      origin: THREE.Vector3;
+      contact: THREE.Vector3;
+      plane: THREE.Plane;
+      normal: THREE.Vector3;
+    } | null;
+    started: number;
+    moved: boolean;
+    held: boolean;
   } | null = null;
   let ignoreClick = false;
   let touchedMark = 0;
+  let modelLoaded = false;
   const threads = new Map<number, THREE.MeshStandardMaterial>();
   function setLift(on: boolean) {
-    desired = Number(on);
+    desired = on;
     if (reading === 0) grab?.setAttribute('aria-pressed', String(on));
     control?.setAttribute('aria-pressed', String(on));
     const label = control?.querySelector('span');
@@ -214,7 +217,7 @@ export function mountTextile() {
     if (grab) {
       const label =
         reading === 0
-          ? 'Grab the flag. Drag horizontally or press to lift.'
+          ? 'Grab and drag the cloth. Press Enter to lift the hem.'
           : reading === 6
             ? 'Open the team sheet'
             : reading === 7
@@ -222,8 +225,7 @@ export function mountTextile() {
               : 'Choose the next competition';
       if (grab.getAttribute('aria-label') !== label)
         grab.setAttribute('aria-label', label);
-      if (reading === 0)
-        grab.setAttribute('aria-pressed', String(desired >= 0.5));
+      if (reading === 0) grab.setAttribute('aria-pressed', String(desired));
       else grab.removeAttribute('aria-pressed');
     }
     requestDraw();
@@ -241,28 +243,6 @@ export function mountTextile() {
     camera.aspect = width / height;
     scroll();
   }
-  // Target the same parametric surface that generated the Blender geometry.
-  function locate(u: number, v: number) {
-    const x =
-      (u - 0.5) * 4.35 +
-      0.43 * Math.sin(v * 2.2 + 0.31) * (u - 0.24) +
-      0.18 * (v - 0.5);
-    const d =
-      0.41 * Math.sin(u * 8.6 + 0.31 + v * 0.85) +
-      0.17 * Math.sin(u * 16.1 - v * 5.3) +
-      0.22 * (1 - v) * Math.sin(u * 4.6 + 0.31) +
-      0.037 * Math.sin(28 * u + 7 * v) * (1 - v) ** 2;
-    const y =
-      (v - 0.5) * 3.49 +
-      0.17 * Math.sin(u * 5.1 + 0.31) +
-      0.34 * u +
-      0.12 * u * u;
-    target.set(
-      1.8 + Math.cos(0.11) * x - Math.sin(0.11) * d,
-      1.65 + y,
-      0.18 - Math.sin(0.11) * x - Math.cos(0.11) * d,
-    );
-  }
   function draw(now: number) {
     frame = 0;
     if (disposed || document.hidden || !ready || (!film && !directory)) return;
@@ -271,20 +251,19 @@ export function mountTextile() {
     last = now;
     const quiet = reduce.matches;
     if (!quiet) clock.value += dt;
-    response.advance(dt, quiet);
-    const damp = quiet ? 1 : 1 - Math.exp(-dt * 10);
-    lift = lerp(lift, desired * (1 - smooth(0.06, 0.22, progress)), damp);
-    drawn = lerp(drawn, tension, damp);
-    look = lerp(look, quiet ? 0 : pointer, damp);
-    for (const mesh of morphs) {
-      const map = mesh.morphTargetDictionary!,
-        weights = mesh.morphTargetInfluences!;
-      weights[map.Lift] = lift;
-      weights[map.Draw] = drawn;
+    const lifted = desired && reading === 0;
+    if (quiet) {
+      if (quietPose !== lifted) simulation.settle(lifted);
+      quietPose = lifted;
+    } else {
+      quietPose = null;
+      simulation.lift(lifted);
+      simulation.advance(dt);
     }
+    look = lerp(look, quiet ? 0 : pointer, quiet ? 1 : 1 - Math.exp(-dt * 10));
     cameraPose(quiet ? stops[reading].at : progress, pose);
     let [u, v, yaw, pitch, dist, fx, fy] = pose;
-    locate(u, v);
+    flagSurface(u, v, target);
     const portrait = width < 730 && height > width * 0.86;
     if (portrait) {
       const wideShot =
@@ -325,47 +304,22 @@ export function mountTextile() {
     if (!quiet) requestDraw();
     else last = 0;
   }
-  function hitAt(x: number, y: number) {
+  function setRay(x: number, y: number) {
     ndc.set((x / width) * 2 - 1, 1 - (y / height) * 2);
     ray.setFromCamera(ndc, camera);
-    return ray.intersectObjects<THREE.Mesh>(meshes, false)[0];
   }
-  function restPoint(hit: NonNullable<ReturnType<typeof hitAt>>) {
-    const { face, barycoord } = hit;
-    if (!face || !barycoord) return hit.point.clone();
-    const positions = hit.object.geometry.getAttribute('position');
-    return new THREE.Vector3()
-      .fromBufferAttribute(positions, face.a)
-      .multiplyScalar(barycoord.x)
-      .addScaledVector(
-        new THREE.Vector3().fromBufferAttribute(positions, face.b),
-        barycoord.y,
-      )
-      .addScaledVector(
-        new THREE.Vector3().fromBufferAttribute(positions, face.c),
-        barycoord.z,
-      );
-  }
-  function markAt(hit: ReturnType<typeof hitAt>) {
-    if (!hit) return 0;
-    const name = hit.object.name + ' ' + hit.object.parent?.name;
-    const match = name.match(/Mark_([1-5])/);
-    if (match) return Number(match[1]);
-    if (name.includes('Roster_')) return 6;
-    if (hit.uv && name.includes('House')) {
-      const u = hit.uv.x,
-        v = 1 - hit.uv.y,
-        i = Math.round((u - 0.16) / 0.156);
-      if (
-        i >= 0 &&
-        i < 5 &&
-        Math.abs(v - 0.095) < 0.043 &&
-        Math.abs(u - 0.16 - i * 0.156) < 0.036
-      )
-        return i + 1;
-      if (reading === 6 && u > 0.62 && u < 0.89 && v > 0.19 && v < 0.38)
-        return 6;
-    }
+  function markAt(uv: THREE.Vector2 | undefined) {
+    if (!uv) return 0;
+    const { x: u, y: v } = uv;
+    const i = Math.round((u - 0.16) / 0.156);
+    if (
+      i >= 0 &&
+      i < 5 &&
+      Math.abs(v - 0.095) < 0.043 &&
+      Math.abs(u - 0.16 - i * 0.156) < 0.036
+    )
+      return i + 1;
+    if (reading === 6 && u > 0.62 && u < 0.89 && v > 0.19 && v < 0.38) return 6;
     return 0;
   }
   function step(delta: number) {
@@ -380,11 +334,12 @@ export function mountTextile() {
     grab = document.querySelector('.grab');
     control = document.querySelector('.fold');
     drag = null;
-    tension = desired = 0;
+    desired = false;
+    quietPose = null;
     pointer = 0;
     ignoreClick = false;
     touchedMark = 0;
-    response.reset();
+    simulation.reset();
     function isSceneTarget(target: EventTarget | null) {
       return (
         target instanceof Element &&
@@ -392,34 +347,50 @@ export function mountTextile() {
           !target.closest('a, button, [role="dialog"], .member-sheet'))
       );
     }
+    const targetPoint = new THREE.Vector3();
     document.addEventListener(
       'pointerdown',
       (e) => {
         if (
           !ready ||
+          (!film && !directory) ||
           drag ||
           !e.isPrimary ||
           e.button !== 0 ||
           !isSceneTarget(e.target)
         )
           return;
-        const hit = hitAt(e.clientX, e.clientY);
-        if (!hit && e.target !== grab) return;
-        const contact = hit ? restPoint(hit) : null;
-        const direction = camera.position.z >= (hit?.point.z ?? 0) ? -1 : 1;
+        ignoreClick = false;
+        touchedMark = 0;
+        setRay(e.clientX, e.clientY);
+        const hit = ray.intersectObject(simulation.collider, false)[0];
+        if (!hit?.uv && e.target !== grab) return;
+        touchedMark = markAt(hit?.uv);
+        let grip = null;
+        if (hit?.uv && !reduce.matches) {
+          const normal = camera.getWorldDirection(new THREE.Vector3());
+          grip = {
+            origin: simulation.grab(hit.uv.x, hit.uv.y),
+            contact: hit.point,
+            plane: new THREE.Plane().setFromNormalAndCoplanarPoint(
+              normal,
+              hit.point,
+            ),
+            normal,
+          };
+          simulation.pull(
+            targetPoint.copy(grip.origin).addScaledVector(normal, -0.085),
+          );
+        }
         drag = {
           x: e.clientX,
           y: e.clientY,
           id: e.pointerId,
-          initial: desired,
-          contact,
-          direction,
-          horizontal: false,
+          grip,
+          started: e.timeStamp,
+          moved: false,
+          held: false,
         };
-        ignoreClick = false;
-        touchedMark = markAt(hit);
-        if (contact && !reduce.matches)
-          response.hold(contact.x, contact.y, direction * 0.22);
         requestDraw();
       },
       options,
@@ -428,51 +399,68 @@ export function mountTextile() {
       'pointermove',
       (e) => {
         if (!drag || drag.id !== e.pointerId) return;
-        const dx = e.clientX - drag.x,
-          dy = e.clientY - drag.y;
-        if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy))
-          drag.horizontal = true;
-        if (drag.contact && !reduce.matches) {
-          const force = 0.22 + Math.min(0.24, Math.hypot(dx, dy) / 300);
-          response.hold(drag.contact.x, drag.contact.y, drag.direction * force);
+        if (
+          !drag.moved &&
+          Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 7
+        ) {
+          drag.moved = true;
+          drag.held ||= e.timeStamp - drag.started > 180;
         }
-        if (drag.horizontal && reading === 0) {
-          desired = clamp(
-            drag.initial +
-              ((drag.initial < 0.5 ? 1 : -1) * Math.abs(dx)) /
-                Math.min(150, width * 0.28),
-            0,
-            1,
-          );
-          tension = clamp(Math.abs(dx) / 145, 0, 1);
+        const { grip } = drag;
+        if (grip && drag.moved && !reduce.matches) {
+          setRay(e.clientX, e.clientY);
+          if (ray.ray.intersectPlane(grip.plane, targetPoint)) {
+            targetPoint
+              .sub(grip.contact)
+              .clampLength(0, 1.05)
+              .add(grip.origin)
+              .addScaledVector(grip.normal, -0.12);
+            simulation.pull(targetPoint);
+          }
         }
         requestDraw();
       },
       options,
     );
+    // Quick vertical swipes stay native. Holding the cloth before dragging
+    // gives touch users a way to pull up or down without scrolling the page.
+    document.addEventListener(
+      'touchmove',
+      (e) => {
+        if (!drag?.grip || e.touches.length !== 1 || !e.cancelable) return;
+        if (!drag.moved && e.timeStamp - drag.started > 180) drag.held = true;
+        if (drag.held) e.preventDefault();
+      },
+      { ...options, passive: false },
+    );
+    function cancelGrab() {
+      simulation.release();
+      drag = null;
+      requestDraw();
+    }
     function release(e: PointerEvent) {
       if (!drag || e.pointerId !== drag.id) return;
-      ignoreClick = drag.horizontal || e.type === 'pointercancel';
-      if (e.type === 'pointercancel') {
-        if (reading === 0) setLift(drag.initial >= 0.5);
-        response.reset();
-      } else {
-        response.release(clock.value);
-        if (drag.horizontal && reading === 0) setLift(desired >= 0.5);
-        else if (
-          drag.horizontal &&
-          film &&
-          reading <= 5 &&
-          Math.abs(e.clientX - drag.x) > 40
-        )
-          step(e.clientX < drag.x ? 1 : -1);
+      const dx = e.clientX - drag.x,
+        dy = e.clientY - drag.y;
+      const cancelled = e.type === 'pointercancel';
+      ignoreClick = cancelled || drag.moved;
+      const quickSwipe = e.pointerType === 'touch' && !drag.held;
+      if (
+        !cancelled &&
+        quickSwipe &&
+        film &&
+        reading >= 1 &&
+        reading <= 5 &&
+        Math.abs(dx) > 98 &&
+        Math.abs(dx) > Math.abs(dy) * 1.7
+      ) {
+        step(dx < 0 ? 1 : -1);
       }
-      drag = null;
-      tension = 0;
-      requestDraw();
+      cancelGrab();
     }
     window.addEventListener('pointerup', release, options);
     window.addEventListener('pointercancel', release, options);
+    window.addEventListener('blur', cancelGrab, options);
     document.addEventListener(
       'click',
       (e) => {
@@ -494,7 +482,7 @@ export function mountTextile() {
             )
             ?.click();
         } else if (keyboard) {
-          if (reading === 0) setLift(desired < 0.5);
+          if (reading === 0) setLift(!desired);
           else if (reading === 7)
             film.querySelector<HTMLAnchorElement>('.return-top')?.click();
           else step(reading === 5 ? -4 : 1);
@@ -502,7 +490,7 @@ export function mountTextile() {
       },
       options,
     );
-    control?.addEventListener('click', () => setLift(desired < 0.5), options);
+    control?.addEventListener('click', () => setLift(!desired), options);
     activate();
     scroll();
   }
@@ -513,18 +501,29 @@ export function mountTextile() {
         releaseResources(gltf.scene);
         return;
       }
-      cloth.add(gltf.scene);
+      let hasBinding = true;
       gltf.scene.traverse((obj) => {
         if (!(obj instanceof THREE.Mesh)) return;
-        meshes.push(obj);
-        shadeSilk(obj.material, !!obj.geometry.attributes.uv, clock, response);
-        if (obj.morphTargetDictionary?.Lift !== undefined) morphs.push(obj);
+        if (!obj.geometry.getAttribute('_cloth')) {
+          hasBinding = false;
+          return;
+        }
+        obj.geometry.translate(-hoistPivot.x, -hoistPivot.y, -hoistPivot.z);
+        simulation.bindMesh(obj.geometry);
+        obj.frustumCulled = false;
+        shadeSilk(obj.material, !!obj.geometry.attributes.uv, simulation);
         const match = obj.name.match(/Mark_([1-5])/);
         if (match) {
           obj.material.emissive = new THREE.Color(0xc47934);
           threads.set(Number(match[1]), obj.material);
         }
       });
+      if (!hasBinding) {
+        releaseResources(gltf.scene);
+        return;
+      }
+      cloth.add(gltf.scene);
+      modelLoaded = true;
       ready = true;
       activate();
       resize();
@@ -538,7 +537,8 @@ export function mountTextile() {
   window.addEventListener(
     'pointermove',
     (e) => {
-      if (e.pointerType === 'mouse') pointer = (e.clientX / width) * 2 - 1;
+      if (e.pointerType === 'mouse' && !drag)
+        pointer = (e.clientX / width) * 2 - 1;
     },
     { signal },
   );
@@ -565,7 +565,7 @@ export function mountTextile() {
   renderer.domElement.addEventListener(
     'webglcontextrestored',
     () => {
-      ready = meshes.length > 0;
+      ready = modelLoaded;
       activate();
       resize();
     },
@@ -582,6 +582,8 @@ export function mountTextile() {
     cancelAnimationFrame(frame);
     ready = false;
     activate();
+    cloth.remove(simulation.collider);
+    simulation.dispose();
     releaseResources(scene);
     renderer.dispose();
     surface.remove();
