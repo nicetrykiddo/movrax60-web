@@ -140,13 +140,6 @@ def make_flag(name, nx, ny, position, material, crest=False):
 
 
 make_flag("01 | House standard", 65, 55, surface, wine, True)
-for name, loc, w, h, yaw, phase, mat in [
-    ("02 | Pleated facing", (.79,1.38,1.59),2.9,3.6,-.67,1.77,plum),
-    ("03 | Indigo fall", (4.56,1.80,1.78),3.2,3.9,-.76,3.50,indigo),
-    ("04 | Valance", (1.03,3.18,3.46),3.9,1.36,.16,1.12,plum),
-]:
-    make_flag(name, 44, 32, lambda u,v: surface(u,v,loc,w,h,yaw,phase), mat)
-
 # Tubular chain stitches and unravelled yarn share one mesh and two pose keys.
 verts, faces, thread_materials = [], [], []
 def yarn(points, radius, material_index):
@@ -184,6 +177,68 @@ threads = make_mesh("05 | Hem and fringe",verts,faces,[selvedge,raw],morph=True)
 for face, index in zip(threads.data.polygons,thread_materials):
     face.material_index = index
 
+# The competition band and its reverse are sewn to this same surface.
+def stitch_point(u, v, offset=.014):
+    along = surface(u+.001,v)-surface(u-.001,v)
+    up = surface(u,v+.001)-surface(u,v-.001)
+    return surface(u,v) + along.cross(up).normalized()*offset
+
+
+def transfer_yarn(name, materials):
+    obj = make_mesh(name, verts, faces, materials, morph=True)
+    for face, index in zip(obj.data.polygons, thread_materials):
+        face.material_index = index
+    verts.clear()
+    faces.clear()
+    thread_materials.clear()
+    return obj
+
+
+verts.clear()
+faces.clear()
+thread_materials.clear()
+for v in (.055,.137):
+    for side in (-1,1):
+        yarn([stitch_point(k/150,v,side*.012) for k in range(151)],.0047,0)
+for v in (.087,.115,.143):
+    for side in (-1,1):
+        for k in range(27):
+            u=.908+.09*k/27
+            yarn([stitch_point(u,v+(u-.91)*.28,side*.018),
+                  stitch_point(u+.003,v+(u-.91)*.28+.008,side*.02)],.0041,0)
+transfer_yarn("Band piping and three repair stitches",[copper])
+
+glyphs = [[(-.50,0),(0,.60),(.50,0),(0,-.60),(-.50,0)],
+          [(0,-.60),(0,.60)], [(-.55,0),(.55,0)], [(-.46,-.46),(.46,.46)],
+          [(cos(i*pi/16)*.47,sin(i*pi/16)*.47) for i in range(33)]]
+for mark in range(5):
+    center = .16+mark*.156
+    def eye(x,y,side):
+        return stitch_point(center+x*.026,.095+y*.033,.018*side)
+    for side in (-1,1):
+        for radius in (.90,1.07):
+            yarn([eye(radius*cos(i*pi/36),radius*sin(i*pi/36),side) for i in range(73)],.006,0)
+        for route in [glyphs[mark]] + ([[(0,-.55),(0,.55)]] if mark==2 else
+                                        [[(-.46,.46),(.46,-.46)]] if mark==3 else []):
+            yarn([eye(x,y,side) for x,y in route],.009,0)
+    foil = textile("Event thread %d"%(mark+1),(.83,.48,.19),.20)
+    transfer_yarn("Mark_%d"%(mark+1),[foil])
+
+# Double-faced cloth carries a maker's label on its reverse.
+nx,ny=28,12
+uv=[(x/nx,y/ny) for y in range(ny+1) for x in range(nx+1)]
+label_faces=[(i,i+nx+1,i+nx+2,i+1) for y in range(ny) for x in range(nx) for i in [y*(nx+1)+x]]
+make_mesh("Roster_label",[stitch_point(.623+u*.266,.192+v*.184,-.027) for u,v in uv],
+          label_faces,[plum],uv,True)
+for v in (.20,.368):
+    yarn([stitch_point(.63+i*.25/70,v,-.036) for i in range(71)],.0055,0)
+for u in (.63,.88):
+    yarn([stitch_point(u,.20+i*.168/35,-.036) for i in range(36)],.0055,0)
+for i in range(8):
+    u=.662+i*.026
+    yarn([stitch_point(u+k*.001,.235+k*.008,-.039) for k in range(12)],.0062,0)
+transfer_yarn("Roster_binding",[copper])
+
 # Store a usable lighting rig and camera in the editable source.
 def aim(obj, target):
     obj.rotation_euler = (Vector(target)-obj.location).to_track_quat('-Z','Y').to_euler()
@@ -202,8 +257,15 @@ camera = bpy.context.object
 camera.data.lens = 35
 aim(camera,(.21,.2,1.56))
 scene.camera = camera
-bpy.ops.mesh.primitive_plane_add(size=100, location=(0,0,-.58))
-bpy.context.object.data.materials.append(textile("Cyclorama",(.015,.009,.019)))
+sweep = [(-22,-.58),(3,-.58)] + [(3+4*sin(i*pi/40),3.42-4*cos(i*pi/40)) for i in range(1,21)] + [(7,16)]
+backdrop = bpy.data.meshes.new("Seamless studio")
+backdrop.from_pydata([(x,y,z) for y,z in sweep for x in (-24,24)],[],
+                     [(2*i,2*i+1,2*i+3,2*i+2) for i in range(len(sweep)-1)])
+studio=bpy.data.objects.new("Cyclorama",backdrop)
+scene.collection.objects.link(studio)
+backdrop.materials.append(textile("Studio velvet",(.015,.009,.019)))
+for face in backdrop.polygons:
+    face.use_smooth=True
 scene.world = bpy.data.worlds.new("Amethyst studio")
 scene.world.color = (.055,.035,.06)
 scene.render.engine = 'CYCLES'
