@@ -116,7 +116,7 @@ test('missing WebGL preserves working section navigation and both routes', async
   expect(errors).toEqual([]);
 });
 
-test('the Blender scene loads and the fold responds to keyboard and drag', async ({ page }) => {
+test('the Blender scene supports direct dragging without a hem toggle', async ({ page }) => {
   const media: string[] = [];
   const errors: string[] = [];
   page.on('request', req => {
@@ -126,12 +126,7 @@ test('the Blender scene loads and the fold responds to keyboard and drag', async
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   await expect(page.locator('.loom[data-ready]')).toBeVisible({ timeout: 20000 });
-  const lift = page.getByRole('button', { name: 'Lift the hem', exact: true });
-  await lift.press('Enter');
-  const lower = page.getByRole('button', { name: /lower the (fold|hem)/i });
-  await expect(lower).toHaveAttribute('aria-pressed', 'true');
-  await lower.press('Space');
-  await expect(lift).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByRole('button', { name: /(?:lift|lower) the hem/i })).toHaveCount(0);
   const target = page.locator('.grab');
   const bounds = (await target.boundingBox())!;
   const x = bounds.x + bounds.width * 0.25;
@@ -140,7 +135,7 @@ test('the Blender scene loads and the fold responds to keyboard and drag', async
   await page.mouse.down();
   await page.mouse.move(x + Math.min(260, bounds.width * 0.65), y - 10, { steps: 12 });
   await page.mouse.up();
-  await expect(lift).toHaveAttribute('aria-pressed', 'false');
+  await expect(target).toHaveAttribute('aria-hidden', 'true');
   await page.getByRole('link', { name: /explore results/i }).click();
   await expect(page.getByRole('heading', { name: resultTitles[0], exact: true })).toBeInViewport();
   await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
@@ -274,7 +269,6 @@ test('a failed model download leaves working navigation and no dead cloth contro
   await page.goto('/');
   await expect(hero(page)).toBeInViewport();
   await expect(page.locator('.grab')).toBeHidden();
-  await expect(page.getByRole('button', { name: /pick up the fold|lift the hem/i })).toBeHidden();
   await page.getByRole('link', { name: /explore results/i }).click();
   await page.getByRole('button', { name: 'Next competition', exact: true }).click();
   await expect(page.getByRole('heading', { name: /Nullcon Goa/ })).toBeInViewport();

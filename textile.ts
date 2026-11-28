@@ -158,8 +158,7 @@ export function mountTextile() {
   const pose: number[] = [];
   let film: HTMLElement | null = null,
     directory = false,
-    grab: HTMLButtonElement | null = null,
-    control: HTMLButtonElement | null = null;
+    grab: HTMLButtonElement | null = null;
   let routeInputs = new AbortController();
   let ready = false,
     disposed = false,
@@ -167,9 +166,7 @@ export function mountTextile() {
     last = 0,
     progress = 0,
     reading = 0;
-  let desired = false,
-    quietPose: boolean | null = null,
-    look = 0,
+  let look = 0,
     pointer = 0,
     width = 1,
     height = 1,
@@ -193,14 +190,6 @@ export function mountTextile() {
   let touchedMark = 0;
   let modelLoaded = false;
   const threads = new Map<number, THREE.MeshStandardMaterial>();
-  function setLift(on: boolean) {
-    desired = on;
-    if (reading === 0) grab?.setAttribute('aria-pressed', String(on));
-    control?.setAttribute('aria-pressed', String(on));
-    const label = control?.querySelector('span');
-    if (label) label.textContent = on ? 'Lower the hem' : 'Lift the hem';
-    requestDraw();
-  }
   function activate() {
     const visible = ready && !!(film || directory);
     surface.toggleAttribute('data-ready', visible);
@@ -217,16 +206,21 @@ export function mountTextile() {
     if (grab) {
       const label =
         reading === 0
-          ? 'Grab and drag the cloth. Press Enter to lift the hem.'
+          ? ''
           : reading === 6
             ? 'Open the team sheet'
             : reading === 7
               ? 'Return to the flag'
               : 'Choose the next competition';
-      if (grab.getAttribute('aria-label') !== label)
+      if (label) {
         grab.setAttribute('aria-label', label);
-      if (reading === 0) grab.setAttribute('aria-pressed', String(desired));
-      else grab.removeAttribute('aria-pressed');
+        grab.removeAttribute('aria-hidden');
+        grab.tabIndex = 0;
+      } else {
+        grab.removeAttribute('aria-label');
+        grab.setAttribute('aria-hidden', 'true');
+        grab.tabIndex = -1;
+      }
     }
     requestDraw();
   }
@@ -250,14 +244,8 @@ export function mountTextile() {
       dt = Math.min(elapsed / 1000, 0.05);
     last = now;
     const quiet = reduce.matches;
-    if (!quiet) clock.value += dt;
-    const lifted = desired && reading === 0;
-    if (quiet) {
-      if (quietPose !== lifted) simulation.settle(lifted);
-      quietPose = lifted;
-    } else {
-      quietPose = null;
-      simulation.lift(lifted);
+    if (!quiet) {
+      clock.value += dt;
       simulation.advance(dt);
     }
     look = lerp(look, quiet ? 0 : pointer, quiet ? 1 : 1 - Math.exp(-dt * 10));
@@ -332,10 +320,7 @@ export function mountTextile() {
     film = document.querySelector('.film');
     directory = !!document.querySelector('.roster');
     grab = document.querySelector('.grab');
-    control = document.querySelector('.fold');
     drag = null;
-    desired = false;
-    quietPose = null;
     pointer = 0;
     ignoreClick = false;
     touchedMark = 0;
@@ -481,16 +466,14 @@ export function mountTextile() {
               '.marks-nav a[href="#' + stops[mark].id + '"]',
             )
             ?.click();
-        } else if (keyboard) {
-          if (reading === 0) setLift(!desired);
-          else if (reading === 7)
+        } else if (keyboard && reading !== 0) {
+          if (reading === 7)
             film.querySelector<HTMLAnchorElement>('.return-top')?.click();
           else step(reading === 5 ? -4 : 1);
         }
       },
       options,
     );
-    control?.addEventListener('click', () => setLift(!desired), options);
     activate();
     scroll();
   }
@@ -552,7 +535,17 @@ export function mountTextile() {
     },
     { signal },
   );
-  reduce.addEventListener('change', requestDraw, { signal });
+  reduce.addEventListener(
+    'change',
+    () => {
+      if (reduce.matches) {
+        drag = null;
+        simulation.reset();
+      }
+      requestDraw();
+    },
+    { signal },
+  );
   renderer.domElement.addEventListener(
     'webglcontextlost',
     (e) => {

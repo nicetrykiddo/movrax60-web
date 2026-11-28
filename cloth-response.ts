@@ -115,7 +115,6 @@ export class ClothSimulation {
     stretch: number;
     compression: number;
   }[] = [];
-  private readonly hem: Grip[];
   private grip:
     | (Grip & {
         origin: Vector3;
@@ -124,7 +123,6 @@ export class ClothSimulation {
         travel: number;
       })
     | null = null;
-  private lifted = false;
   private accumulator = 0;
   private time = 0;
 
@@ -178,15 +176,6 @@ export class ClothSimulation {
       geometry,
       new MeshBasicMaterial({ side: DoubleSide }),
     );
-    this.hem = [0.29, 0.54, 0.79].map((u) => {
-      const bind = binding(u, 0.035);
-      return {
-        ...bind,
-        target: sample(this.rest, bind, new Vector3()).add(
-          new Vector3(-0.18, 0.63, 0.36),
-        ),
-      };
-    });
     this.reset();
   }
 
@@ -256,7 +245,7 @@ export class ClothSimulation {
     }
   }
 
-  private step(wind: boolean) {
+  private step() {
     const p = this.positions,
       old = this.previous,
       rest = this.rest;
@@ -267,10 +256,9 @@ export class ClothSimulation {
       const free = (node % columns) / (columns - 1);
       // The authored drape is the pre-tensioned equilibrium. Gravity and a
       // damped restoring force bring the displaced cloth back to that drape.
-      const air = wind
-        ? free *
-          (1.15 * Math.sin(this.time * 2 - rest[i] * 1.7 + rest[i + 1] * 0.6))
-        : 0;
+      const air =
+        free *
+        (1.15 * Math.sin(this.time * 2 - rest[i] * 1.7 + rest[i + 1] * 0.6));
       for (let axis = 0; axis < 3; axis++) {
         const j = i + axis;
         const acc =
@@ -282,9 +270,6 @@ export class ClothSimulation {
       }
     }
     for (let pass = 0; pass < solverPasses; pass++) {
-      if (this.lifted) {
-        for (const bound of this.hem) this.constrainGrip(bound, 0.31);
-      }
       if (this.grip && pass < solverPasses - 2)
         this.constrainGrip(this.grip, 0.7);
       for (const edge of this.constraints) {
@@ -367,31 +352,18 @@ export class ClothSimulation {
   release() {
     this.grip = null;
   }
-  lift(enabled: boolean) {
-    this.lifted = enabled;
-  }
-
   advance(seconds: number) {
     this.accumulator = Math.min(this.accumulator + seconds, timeStep * 5);
     if (this.accumulator < timeStep) return;
     while (this.accumulator >= timeStep) {
-      this.step(true);
+      this.step();
       this.accumulator -= timeStep;
     }
     this.updateField();
   }
 
-  settle(lifted: boolean) {
-    this.reset();
-    if (!lifted) return;
-    this.lifted = true;
-    for (let i = 0; i < 70; i++) this.step(false);
-    this.updateField();
-  }
-
   reset() {
     this.grip = null;
-    this.lifted = false;
     this.accumulator = this.time = 0;
     this.positions.set(this.rest);
     this.previous.set(this.rest);

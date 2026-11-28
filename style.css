@@ -154,7 +154,6 @@ svg {
 .sound,
 .round,
 .action,
-.fold,
 .quiet-link {
   display: inline-flex;
   align-items: center;
@@ -167,20 +166,17 @@ svg {
 }
 .sound,
 .round,
-.fold,
 .glass {
   border: 1px solid #e8c49b52;
   background: #211c20c9;
   backdrop-filter: blur(12px);
 }
 .sound,
-.fold,
 .glass,
 .primary {
   padding: 0 17px;
 }
 .sound svg,
-.fold svg,
 .action svg,
 .quiet-link svg,
 .round svg,
@@ -191,7 +187,6 @@ svg {
 }
 .sound,
 .round,
-.fold,
 .action {
   transition:
     background 0.22s,
@@ -212,8 +207,7 @@ button:active,
 }
 .sound:hover,
 .round:hover,
-.glass:hover,
-.fold:hover {
+.glass:hover {
   background: #443634;
   border-color: #e8c49bab;
 }
@@ -463,7 +457,6 @@ h2 {
   pointer-events: auto;
 }
 .grab,
-.fold,
 .film-foot {
   display: none;
 }
@@ -480,16 +473,11 @@ h2 {
   cursor: grabbing;
   transform: none;
 }
-.film[data-playing] .film-foot,
-.has-silk .film[data-scene='identity'] .fold {
+.film[data-playing] .film-foot {
   position: fixed;
   bottom: max(env(safe-area-inset-bottom), 27px);
   z-index: 4;
   display: flex;
-}
-.fold {
-  right: var(--edge);
-  color: #eadbca;
 }
 .film-foot {
   left: var(--edge);
@@ -747,8 +735,7 @@ h2 {
   .has-silk .film[data-playing] .grab {
     inset: 68px 0 49svh;
   }
-  .film[data-playing] .film-foot,
-  .has-silk .film[data-scene='identity'] .fold {
+  .film[data-playing] .film-foot {
     bottom: max(env(safe-area-inset-bottom), 12px);
   }
   .marks-nav button,
@@ -864,8 +851,7 @@ h2 {
   .lede + .action {
     margin-top: 8px;
   }
-  .film[data-playing] .film-foot,
-  .has-silk .film[data-scene='identity'] .fold {
+  .film[data-playing] .film-foot {
     bottom: 4px;
   }
   .roster[data-book] .member-sheet {

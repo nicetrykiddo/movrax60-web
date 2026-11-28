@@ -34,14 +34,3 @@ test('grabbing the upper and middle cloth moves each grip around the fixed hoist
   }
   cloth.dispose();
 });
-
-test('the keyboard lift raises the left, middle and right sections of the free hem', () => {
-  const cloth = new ClothSimulation();
-  const points = [0.29, 0.54, 0.79];
-  const rest = points.map((u) => cloth.grab(u, 0.035).y);
-  cloth.settle(true);
-  for (const [i, u] of points.entries()) {
-    expect(cloth.grab(u, 0.035).y - rest[i]).toBeGreaterThan(0.35);
-  }
-  cloth.dispose();
-});

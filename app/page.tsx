@@ -5,7 +5,6 @@ import {
   ArrowRight,
   ArrowUp,
   ArrowUpRight,
-  Hand,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { CSSProperties, ReactNode } from 'react';
@@ -80,13 +79,9 @@ export default function HomePage() {
         <button
           className="grab"
           type="button"
-          aria-label="Grab and drag the cloth. Press Enter to lift the hem."
-          aria-pressed="false"
+          aria-hidden="true"
+          tabIndex={-1}
         />
-        <button className="fold" type="button" aria-pressed="false">
-          <Hand size={16} />
-          <span>Lift the hem</span>
-        </button>
         <div className="film-foot">
           <a className="advance" href="#results">
             <ArrowDown /> Scroll to explore
