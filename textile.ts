@@ -48,7 +48,8 @@ function shadeSilk(
       diffuseColor.rgb*=1.+.033*cos(6.28318*(loomUV.x*86.+.18*sin(loomUV.y*13.)));`,
       );
   };
-  material.customProgramCacheKey = () => (woven ? material.name : 'yarn');
+  material.customProgramCacheKey = () =>
+    woven ? (material.name === 'Copper brocade' ? 'crest' : 'twill') : 'yarn';
   material.defines = { ...material.defines, USE_UV: '' };
 }
 
@@ -63,7 +64,7 @@ export function mountTextile() {
   try {
     renderer = new THREE.WebGLRenderer({
       alpha: true,
-      antialias: true,
+      antialias: false,
       powerPreference: 'high-performance',
     });
   } catch {
