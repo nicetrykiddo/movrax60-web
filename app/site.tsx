@@ -1,1 +1,1 @@
-export const playerId=(handle:string)=>'player-'+handle.toLowerCase();
+export const playerId = (handle: string) => 'player-' + handle.toLowerCase();

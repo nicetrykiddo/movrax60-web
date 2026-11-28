@@ -1,15 +1,20 @@
 # movrax60
 
-A Next.js site for the international CTF team. The home and member routes are prerendered. The optical workbench loads separately in the browser, using Three.js and Anime.js.
+A Next.js site for an international CTF team. One live Three.js camera follows the team's flag from its crest along five stitched result marks, around the hem to the roster label, and back out for contact. Anime.js animates the result readouts as they enter.
 
-## Local development
+## Run locally
 
-Run `npm ci` and `npm run dev`. For a production preview use `npm run build` and `npm start`. Vercel can use its Next.js preset. Run `npm test` for the production browser checks (requires Google Chrome).
+```sh
+npm ci
+npm run dev
+```
 
-## Content and controls
+Use `npm run build` and `npm start` for the production build. The repository uses the Vercel Next.js preset. Run `npm test` for the browser checks with Google Chrome installed.
 
-Edit `records.json` for competition results, member information and contacts. Telegram, Discord and email become links when their URLs are filled in. The Hack The Box result retains its player-reported attribution.
+## Edit the design and content
 
-Click the relay to send a pulse, drag horizontally to orbit or use the arrow keys when the model has focus. Lift the cover to inspect the electronics. Native scrolling moves the camera from the three launch ferrules along the optical loom to its nine receiver sockets. Reduced motion disables continuous camera and light animation.
+- Open `design/movrax60-continuous-flag.fig` in OpenPencil for the desktop and portrait boards, camera positions, member directory, and interaction states.
+- Open `art/textile/standard.blend` for the Blender rig. Run `blender -b -t 4 --python art/textile/weave.py` to regenerate it and export `public/models/standard.glb`. The app uses only the meshes and morph targets in that export. The site lights and animates the model in `textile.ts`, and the scroll and camera key positions live in `flag-track.ts`.
+- Edit `records.json` for results, member details, and contacts. Add URLs to enable the Telegram, Discord, and email links. The Hack The Box placement is player-reported.
 
-The original Blender model is built by `art/optic/model.py` and served as `public/models/relay.glb`. The instanced loom has 4,608 strands and 1,024 spans per strand at full detail. The renderer selects a subset based on the adapter and observed frame intervals.
+Scrolling works with wheel, trackpad and touch. Drag the hem or use the lift button. In results, use the eyelets, dot index, arrow keys or horizontal swipe. The roster has eight direct profile anchors. Reduced-motion mode holds a stable pose for each reading position.
