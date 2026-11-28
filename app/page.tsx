@@ -1,33 +1,39 @@
-import { ArrowDown, ArrowDownRight, ArrowRight, ArrowUpRight, Hand } from 'lucide-react';
-import records from '../records.json';
+import { ArrowDown, ArrowDownRight, ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, Hand } from 'lucide-react';
+import Link from 'next/link';
+import type { CSSProperties, ReactNode } from 'react';
 import { Header } from './header';
-import { Contact, playerId } from './site';
-import { CompetitionResults } from './results';
+import { Result, editions } from './results';
 import { BrandMark } from './brand';
-export default function HomePage() {
-  return <div className="home"><Header/><main id="main">
-    <section className="hero-track" aria-labelledby="hero-title">
-      <div className="hero">
-        <div className="loom-fallback" aria-hidden="true"><BrandMark/></div>
-        <div className="hero-copy"><p className="eyebrow">International CTF team</p>
-          <h1 id="hero-title">movrax<span>60</span></h1>
-          <p className="lede">Competitive cybersecurity, played together across time zones.</p>
-          <a className="action primary" href="#results">Explore results <ArrowDownRight/></a>
-        </div>
-        <button className="grab" aria-label="Grab the flag. Drag horizontally or press to lift." aria-pressed="false" hidden/>
-        <button className="fold" type="button" aria-pressed="false" hidden><Hand/><span>Pick up the fold</span></button>
-        <a className="scroll-label" href="#results"><ArrowDown/> Scroll to explore</a>
-      </div>
-    </section>
-    <CompetitionResults/>
-    <section className="team" id="team" aria-labelledby="team-title">
-      <div className="section-width team-grid"><div><p className="eyebrow">The crew</p>
-        <h2 id="team-title">Behind the <em>handles.</em></h2>
-        <p className="lede">Eight players on the movrax60 team sheet.</p>
-        <a className="action primary" href="/members/">Meet the team <ArrowRight/></a></div>
-        <nav className="handles" aria-label="Team members">{records.members.map((m,i)=>
-          <a href={'/members/#'+playerId(m.handle)} key={m.handle}><small>{String(i+1).padStart(2,'0')}</small>{m.handle}<ArrowUpRight/></a>)}</nav>
-      </div>
-    </section><Contact/>
-  </main></div>;
+import { stops } from '../flag-track';
+import records from '../records.json';
+
+function Stop({index,children}:{index:number;children:ReactNode}){
+  const stop=stops[index];
+  return <section className="film-stop" id={stop.id} data-stop={index} style={{'--at':stop.at} as CSSProperties}>
+    <div className="readout">{children}</div></section>;
+}
+export default function HomePage(){
+  return <div className="home"><Header/><main className="film" id="main">
+    <div className="stage-fallback" aria-hidden="true"><BrandMark/></div>
+    <Stop index={0}><p className="eyebrow">International CTF team</p>
+      <h1>movrax<span>60</span></h1><p className="lede">We play capture the flag across time zones.</p>
+      <a className="action primary" href="#results">Explore results <ArrowDownRight/></a></Stop>
+    {editions.map((event,i)=><Stop key={event.name} index={i+1}><Result index={i}/></Stop>)}
+    <Stop index={6}><p className="eyebrow">Members <span>/</span> 08 players</p>
+      <h2>The roster.</h2><p className="lede">Eight players on our CTFtime team sheet.</p>
+      <Link className="action primary" href="/members/">Meet the team <ArrowUpRight/></Link></Stop>
+    <Stop index={7}><p className="eyebrow">Contact</p><h2>Get in touch.</h2>
+      <p className="lede">CTF invites, collaborations and hellos.</p>
+      <a className="action primary" href={records.source}>CTFtime <ArrowUpRight/></a>
+      <ul className="contact-links">{records.contacts.map(({label,url})=><li key={label}>{url?<a href={url}>{label} ↗</a>:<span>{label}</span>}</li>)}</ul>
+      {records.contacts.some(c=>!c.url)&&<small className="pending">More links coming soon</small>}</Stop>
+    <button className="grab" type="button" aria-label="Grab the flag. Drag horizontally or press to lift." aria-pressed="false"/>
+    <button className="fold" type="button" aria-pressed="false"><Hand size={16}/><span>Lift the hem</span></button>
+    <div className="film-foot">
+      <a className="advance" href="#results"><ArrowDown/> Scroll to explore</a>
+      <nav className="marks-nav" aria-label="Choose a competition"><button data-step="-1" aria-label="Previous competition"><ArrowLeft/></button>
+        {editions.map((e,i)=><a key={e.name} href={'#'+stops[i+1].id} aria-label={e.name} title={e.name}><i/></a>)}
+        <button data-step="1" aria-label="Next competition"><ArrowRight/></button></nav>
+      <a className="return-top" href="#top"><ArrowUp/> Return to the flag</a>
+    </div></main></div>;
 }

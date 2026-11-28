@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@base-ui/react/dialog';
 import { ArrowUpRight, Menu, Volume2, VolumeX, X } from 'lucide-react';
+import Link from 'next/link';
+import { filmProgress,readingIndex } from '../flag-track';
 import { BrandLink } from './brand';
 const links = [['Home','/#top'], ['Results','/#results'], ['Members','/members/'], ['Contact','/#contact']];
 export function Header({members = false}: {members?: boolean}) {
@@ -11,19 +13,12 @@ export function Header({members = false}: {members?: boolean}) {
   const player = useRef<HTMLAudioElement|null>(null);
   const nav = useRef<HTMLElement|null>(null);
   useEffect(() => {
-    const sections = members ? ['contact'] : ['results','team','contact'];
-    const names: Record<string,string> = {results:'Results',team:'Members',contact:'Contact'};
     function track() {
-      let name = members ? 'Members' : 'Home';
-      for (const id of sections) {
-        if ((document.getElementById(id)?.getBoundingClientRect().top ?? Infinity) <= innerHeight*.54) name = names[id];
-      }
-      setActive(name);
-      document.body.classList.toggle('on-paper',name==='Results');
+      const i=readingIndex(filmProgress());
+      setActive(members?'Members':i===0?'Home':i<6?'Results':i===6?'Members':'Contact');
     }
-    track(); addEventListener('scroll',track,{passive:true}); addEventListener('resize',track);
-    return () => {removeEventListener('scroll',track); removeEventListener('resize',track);
-      document.body.classList.remove('on-paper'); player.current?.pause();};
+    track();document.addEventListener('flag:reading',track);
+    return ()=>{document.removeEventListener('flag:reading',track);player.current?.pause();};
   },[members]);
   useEffect(() => {
     const bar = nav.current;
@@ -44,10 +39,10 @@ export function Header({members = false}: {members?: boolean}) {
       try { await player.current.play(); setOn(true); } catch { setOn(false); }
     } else {player.current.pause(); setOn(false);}
   }
-  const menuLinks = links.map(([label,href]) => <a key={label}
-    href={members && label==='Contact' ? '#contact' : href}
+  const menuLinks = links.map(([label,href]) => <Link key={label}
+    href={label==='Members'&&!members?'/#team':href}
     aria-current={active===label?'location':undefined} onClick={() => setOpen(false)}>
-    {label}<ArrowUpRight size={18}/></a>);
+    {label}<ArrowUpRight size={18}/></Link>);
   return <header className="bar"><BrandLink />
     <nav className="pill-nav" aria-label="Main navigation" ref={nav}><i aria-hidden="true"/>{menuLinks}</nav>
     <div className="bar-actions"><button className="sound" aria-pressed={on} aria-label={on?'Sound on':'Sound off'} onClick={toggleAudio}>
