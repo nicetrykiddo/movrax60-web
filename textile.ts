@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clothResponseShader, createClothResponse } from './cloth-response';
 import { cameraPose, filmProgress, readingIndex, stops } from './flag-track';
 const clamp = THREE.MathUtils.clamp,
   lerp = THREE.MathUtils.lerp;
@@ -11,13 +12,20 @@ function shadeSilk(
   material: THREE.MeshStandardMaterial,
   woven: boolean,
   clock: { value: number },
+  cloth: ReturnType<typeof createClothResponse>,
 ) {
   material.side = THREE.DoubleSide;
   material.onBeforeCompile = (shader) => {
     shader.uniforms.loomTime = clock;
+    shader.uniforms.clothPress = { value: cloth.press };
+    shader.uniforms.clothWaves = { value: cloth.waves };
     shader.vertexShader =
-      'uniform float loomTime; varying vec2 loomUV;\n' +
+      clothResponseShader +
+      'varying vec2 loomUV;\n' +
       shader.vertexShader
+        .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
+          vec3 clothChange = clothDeformation(position.xy);
+          objectNormal.xy -= objectNormal.z * clothChange.yz;`)
         .replace(
           '#include <begin_vertex>',
           '#include <begin_vertex>\nloomUV = uv;',
@@ -27,7 +35,8 @@ function shadeSilk(
           `#include <morphtarget_vertex>
         float freedom=.22+.19*clamp(3.65-position.y,0.,3.8);
         transformed.z+=freedom*(.052*sin(position.x*2.25+position.y*.81+loomTime*.72)+.015*sin(position.y*3.1-position.x+loomTime*.95));
-        transformed.y+=freedom*.021*sin(position.x*1.9+loomTime*.8);`,
+        transformed.y+=freedom*.021*sin(position.x*1.9+loomTime*.8);
+        transformed.z += clothChange.x;`,
         );
     if (material.name === 'Copper brocade')
       shader.fragmentShader = shader.fragmentShader.replace(
@@ -90,6 +99,7 @@ export function mountTextile() {
     bounce,
     new THREE.HemisphereLight(0xf1c2a7, 0x29172c, 0.76),
   );
+  const response = createClothResponse();
   const cloth = new THREE.Group();
   scene.add(cloth);
   const shadow = new THREE.Mesh(
@@ -173,9 +183,12 @@ export function mountTextile() {
     y: number;
     id: number;
     initial: number;
+    contact: THREE.Vector3 | null;
+    direction: number;
     horizontal: boolean;
   } | null = null;
   let ignoreClick = false;
+  let touchedMark = 0;
   const threads = new Map<number, THREE.MeshStandardMaterial>();
   function setLift(on: boolean) {
     desired = Number(on);
@@ -258,6 +271,7 @@ export function mountTextile() {
     last = now;
     const quiet = reduce.matches;
     if (!quiet) clock.value += dt;
+    response.advance(dt, quiet);
     const damp = quiet ? 1 : 1 - Math.exp(-dt * 10);
     lift = lerp(lift, desired * (1 - smooth(0.06, 0.22, progress)), damp);
     drawn = lerp(drawn, tension, damp);
@@ -314,7 +328,25 @@ export function mountTextile() {
   function hitAt(x: number, y: number) {
     ndc.set((x / width) * 2 - 1, 1 - (y / height) * 2);
     ray.setFromCamera(ndc, camera);
-    const hit = ray.intersectObjects(meshes, false)[0];
+    return ray.intersectObjects<THREE.Mesh>(meshes, false)[0];
+  }
+  function restPoint(hit: NonNullable<ReturnType<typeof hitAt>>) {
+    const { face, barycoord } = hit;
+    if (!face || !barycoord) return hit.point.clone();
+    const positions = hit.object.geometry.getAttribute('position');
+    return new THREE.Vector3()
+      .fromBufferAttribute(positions, face.a)
+      .multiplyScalar(barycoord.x)
+      .addScaledVector(
+        new THREE.Vector3().fromBufferAttribute(positions, face.b),
+        barycoord.y,
+      )
+      .addScaledVector(
+        new THREE.Vector3().fromBufferAttribute(positions, face.c),
+        barycoord.z,
+      );
+  }
+  function markAt(hit: ReturnType<typeof hitAt>) {
     if (!hit) return 0;
     const name = hit.object.name + ' ' + hit.object.parent?.name;
     const match = name.match(/Mark_([1-5])/);
@@ -351,32 +383,58 @@ export function mountTextile() {
     tension = desired = 0;
     pointer = 0;
     ignoreClick = false;
-    grab?.addEventListener(
+    touchedMark = 0;
+    response.reset();
+    function isSceneTarget(target: EventTarget | null) {
+      return (
+        target instanceof Element &&
+        (target === grab ||
+          !target.closest('a, button, [role="dialog"], .member-sheet'))
+      );
+    }
+    document.addEventListener(
       'pointerdown',
       (e) => {
-        if (e.button !== 0) return;
+        if (
+          !ready ||
+          drag ||
+          !e.isPrimary ||
+          e.button !== 0 ||
+          !isSceneTarget(e.target)
+        )
+          return;
+        const hit = hitAt(e.clientX, e.clientY);
+        if (!hit && e.target !== grab) return;
+        const contact = hit ? restPoint(hit) : null;
+        const direction = camera.position.z >= (hit?.point.z ?? 0) ? -1 : 1;
         drag = {
           x: e.clientX,
           y: e.clientY,
           id: e.pointerId,
           initial: desired,
+          contact,
+          direction,
           horizontal: false,
         };
         ignoreClick = false;
-        tension = reading === 0 ? 0.16 : 0;
+        touchedMark = markAt(hit);
+        if (contact && !reduce.matches)
+          response.hold(contact.x, contact.y, direction * 0.22);
         requestDraw();
       },
       options,
     );
-    grab?.addEventListener(
+    document.addEventListener(
       'pointermove',
       (e) => {
         if (!drag || drag.id !== e.pointerId) return;
         const dx = e.clientX - drag.x,
           dy = e.clientY - drag.y;
-        if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+        if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy))
           drag.horizontal = true;
-          grab?.setPointerCapture(e.pointerId);
+        if (drag.contact && !reduce.matches) {
+          const force = 0.22 + Math.min(0.24, Math.hypot(dx, dy) / 300);
+          response.hold(drag.contact.x, drag.contact.y, drag.direction * force);
         }
         if (drag.horizontal && reading === 0) {
           desired = clamp(
@@ -387,19 +445,26 @@ export function mountTextile() {
             1,
           );
           tension = clamp(Math.abs(dx) / 145, 0, 1);
-          requestDraw();
         }
+        requestDraw();
       },
       options,
     );
     function release(e: PointerEvent) {
       if (!drag || e.pointerId !== drag.id) return;
       ignoreClick = drag.horizontal || e.type === 'pointercancel';
-      if (e.type === 'pointercancel' && reading === 0)
-        setLift(drag.initial >= 0.5);
-      else if (drag.horizontal) {
-        if (reading === 0) setLift(desired >= 0.5);
-        else if (reading <= 5 && Math.abs(e.clientX - drag.x) > 40)
+      if (e.type === 'pointercancel') {
+        if (reading === 0) setLift(drag.initial >= 0.5);
+        response.reset();
+      } else {
+        response.release(clock.value);
+        if (drag.horizontal && reading === 0) setLift(desired >= 0.5);
+        else if (
+          drag.horizontal &&
+          film &&
+          reading <= 5 &&
+          Math.abs(e.clientX - drag.x) > 40
+        )
           step(e.clientX < drag.x ? 1 : -1);
       }
       drag = null;
@@ -408,32 +473,32 @@ export function mountTextile() {
     }
     window.addEventListener('pointerup', release, options);
     window.addEventListener('pointercancel', release, options);
-    grab?.addEventListener(
+    document.addEventListener(
       'click',
       (e) => {
+        if (!film || !isSceneTarget(e.target)) return;
         if (ignoreClick) {
           ignoreClick = false;
           return;
         }
-        const hit = e.detail ? hitAt(e.clientX, e.clientY) : 0;
-        if (hit === 6 && reading === 6) {
-          film?.querySelector<HTMLAnchorElement>('#team .action')?.click();
-          return;
-        }
-        if (hit >= 1 && hit <= 5) {
+        const keyboard = e.detail === 0 && e.target === grab;
+        if (!keyboard && e.detail === 0) return;
+        const mark = keyboard ? 0 : touchedMark;
+        touchedMark = 0;
+        if ((mark === 6 || keyboard) && reading === 6) {
+          film.querySelector<HTMLAnchorElement>('#team .action')?.click();
+        } else if (mark >= 1 && mark <= 5) {
           film
-            ?.querySelector<HTMLAnchorElement>(
-              '.marks-nav a[href="#' + stops[hit].id + '"]',
+            .querySelector<HTMLAnchorElement>(
+              '.marks-nav a[href="#' + stops[mark].id + '"]',
             )
             ?.click();
-          return;
+        } else if (keyboard) {
+          if (reading === 0) setLift(desired < 0.5);
+          else if (reading === 7)
+            film.querySelector<HTMLAnchorElement>('.return-top')?.click();
+          else step(reading === 5 ? -4 : 1);
         }
-        if (reading === 0) setLift(desired < 0.5);
-        else if (reading === 6)
-          film?.querySelector<HTMLAnchorElement>('#team .action')?.click();
-        else if (reading === 7)
-          film?.querySelector<HTMLAnchorElement>('.return-top')?.click();
-        else step(reading === 5 ? -4 : 1);
       },
       options,
     );
@@ -452,7 +517,7 @@ export function mountTextile() {
       gltf.scene.traverse((obj) => {
         if (!(obj instanceof THREE.Mesh)) return;
         meshes.push(obj);
-        shadeSilk(obj.material, !!obj.geometry.attributes.uv, clock);
+        shadeSilk(obj.material, !!obj.geometry.attributes.uv, clock, response);
         if (obj.morphTargetDictionary?.Lift !== undefined) morphs.push(obj);
         const match = obj.name.match(/Mark_([1-5])/);
         if (match) {
