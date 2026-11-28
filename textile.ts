@@ -41,10 +41,10 @@ function shadeSilk(
         `
       #include <color_fragment>
       vec2 yarn=loomUV*vec2(484.,381.), footprint=fwidth(yarn);
-      vec2 clarity=1.-smoothstep(vec2(.22),vec2(.84),footprint);
+      vec2 clarity=1.-smoothstep(vec2(.17),vec2(.58),footprint);
       vec2 thread=cos(6.28318*yarn);
       float twill=cos(6.28318*(yarn.x-yarn.y)/3.)*(1.-smoothstep(.4,1.8,max(footprint.x,footprint.y)));
-      diffuseColor.rgb*=1.+.205*thread.x*clarity.x+.15*thread.y*clarity.y+.11*twill;
+      diffuseColor.rgb*=1.+.135*thread.x*clarity.x+.10*thread.y*clarity.y+.075*twill;
       diffuseColor.rgb*=1.+.033*cos(6.28318*(loomUV.x*86.+.18*sin(loomUV.y*13.)));`,
       );
   };
@@ -64,7 +64,7 @@ export function mountTextile() {
   try {
     renderer = new THREE.WebGLRenderer({
       alpha: true,
-      antialias: false,
+      antialias: true,
       powerPreference: 'high-performance',
     });
   } catch {
@@ -219,7 +219,10 @@ export function mountTextile() {
     width = Math.max(1, surface.clientWidth);
     height = Math.max(1, surface.clientHeight);
     renderer.setPixelRatio(
-      Math.min(devicePixelRatio, width < 730 ? 1.75 : 1.6) * quality,
+      Math.max(
+        1,
+        Math.min(devicePixelRatio, width < 730 ? 1.75 : 1.6) * quality,
+      ),
     );
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
@@ -300,7 +303,7 @@ export function mountTextile() {
     renderer.render(scene, camera);
     if (elapsed > 30 && elapsed < 160) slow++;
     else slow = Math.max(0, slow - 1);
-    if (slow > 26 && quality > 0.78) {
+    if (slow > 26 && quality > 0.78 && devicePixelRatio > 1) {
       quality = Math.max(0.78, quality - 0.11);
       slow = 0;
       resize();
