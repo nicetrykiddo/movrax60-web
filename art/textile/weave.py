@@ -28,23 +28,44 @@ def textile(name, rgb, metal=0.04):
     bsdf.inputs["Base Color"].default_value = (*rgb, 1)
     bsdf.inputs["Roughness"].default_value = .64
     bsdf.inputs["Metallic"].default_value = metal
-    bsdf.inputs["Sheen Weight"].default_value = .34
+    bsdf.inputs["Sheen Weight"].default_value = .55
+    bsdf.inputs["Sheen Roughness"].default_value = .62
+    bsdf.inputs["Sheen Tint"].default_value = (*[channel*.65+.28 for channel in rgb], 1)
+    bsdf.inputs["Anisotropic"].default_value = .3
+
+    def calc(operation, first, second=None):
+        node = nodes.new("ShaderNodeMath")
+        node.operation = operation
+        for index, value in enumerate((first, second)):
+            if isinstance(value, (int, float)):
+                node.inputs[index].default_value = value
+            elif value is not None:
+                links.new(value, node.inputs[index])
+        return node.outputs[0]
+
     uv = nodes.new("ShaderNodeTexCoord")
-    waves = []
-    for axis, density in [("X", 100), ("Y", 86)]:
-        node = nodes.new("ShaderNodeTexWave")
-        node.bands_direction = axis
-        node.inputs["Scale"].default_value = density
-        links.new(uv.outputs["UV"], node.inputs["Vector"])
-        waves.append(node)
-    mix = nodes.new("ShaderNodeMath")
-    mix.operation = "MULTIPLY"
-    for i, node in enumerate(waves):
-        links.new(node.outputs["Fac"], mix.inputs[i])
+    axes = nodes.new("ShaderNodeSeparateXYZ")
+    links.new(uv.outputs["UV"], axes.inputs[0])
+    x = calc("MULTIPLY", axes.outputs["X"], 328)
+    y = calc("MULTIPLY", axes.outputs["Y"], 264)
+    warp = calc("FLOOR", x)
+    weft = calc("FLOOR", y)
+
+    def strand(across, along, pick):
+        rib = calc("COSINE", calc("MULTIPLY", across, 2*pi))
+        core = calc("MULTIPLY_ADD", rib, -.42)
+        core.node.inputs[2].default_value = .58
+        crossing = calc("SUBTRACT", along, pick)
+        rise = calc("COSINE", calc("MULTIPLY", crossing, pi/2))
+        crimp = calc("MULTIPLY_ADD", rise, .17)
+        crimp.node.inputs[2].default_value = .83
+        return calc("MULTIPLY", core, crimp)
+
+    height = calc("MAXIMUM", strand(x, calc("SUBTRACT", y, 1), warp), strand(y, weft, x))
     bump = nodes.new("ShaderNodeBump")
     bump.inputs["Strength"].default_value = .22
-    bump.inputs["Distance"].default_value = .009
-    links.new(mix.outputs[0], bump.inputs["Height"])
+    bump.inputs["Distance"].default_value = .003
+    links.new(height, bump.inputs["Height"])
     links.new(bump.outputs[0], bsdf.inputs["Normal"])
     return mat
 
@@ -155,19 +176,25 @@ def make_flag(name, nx, ny, position, material, crest=False):
 make_flag("01 | House standard", 65, 55, surface, wine, True)
 # Tubular chain stitches and unravelled yarn share the cloth binding.
 verts, faces, thread_materials = [], [], []
-def yarn(points, radius, material_index):
+def yarn(points, radius, material_index, taper=0):
     start = len(verts)
+    sides = 4
     for i, point in enumerate(points):
         tangent = (points[min(i+1,len(points)-1)] - points[max(i-1,0)]).normalized()
-        a = tangent.cross(Vector((0,1,0))).normalized()
+        cross = tangent.cross(Vector((0,1,0)))
+        if cross.length < .001:
+            cross = tangent.cross(Vector((1,0,0)))
+        a = cross.normalized()
         b = tangent.cross(a)
-        for side in range(3):
-            angle = side*2*pi/3
-            verts.append(point+radius*(a*cos(angle)+b*sin(angle)))
+        thickness = radius*(1-taper*(i/max(1,len(points)-1))**1.4)
+        for side in range(sides):
+            angle = side*2*pi/sides
+            verts.append(point+thickness*(a*cos(angle)+b*sin(angle)))
         if i:
-            j = start+i*3
-            for side in range(3):
-                faces.append((j-3+side,j-3+(side+1)%3,j+(side+1)%3,j+side))
+            j = start+i*sides
+            for side in range(sides):
+                nxt = (side+1)%sides
+                faces.append((j-sides+side,j-sides+nxt,j+nxt,j+side))
                 thread_materials.append(material_index)
 
 
@@ -183,9 +210,27 @@ for u in (.012,.977):
     yarn([sewn(u,i/84) for i in range(85)],.009,0)
 for i in range(285):
     u = (i+rng.random())/285
-    start = surface(u,0)
-    end = start+Vector((rng.uniform(-.036,.036),rng.uniform(-.045,.045),-rng.uniform(.048,.16)))
-    yarn([start,start.lerp(end,.5)+Vector((.012,.007,0)),end],rng.uniform(.0026,.0046),int(i%4!=0))
+    root = surface(u,0)
+    run = Vector((rng.uniform(-.025,.025),rng.uniform(-.055,.047),-rng.uniform(.045,.155)))
+    width = rng.uniform(.0019,.0035)
+    curve = rng.uniform(-.024,.026)
+    phase = rng.random()*2*pi
+
+    def loose_end(t):
+        return root + run*t + Vector((curve*t*t, .011*sin(pi*t+phase)*t, .005*sin(2*pi*t)*t))
+
+    yarn([loose_end(k/5) for k in range(6)],width,int(i%5!=0),.83)
+    if i%4==1:
+        # A broken ply spirals out of the bundle and tapers to a loose fibre.
+        length = rng.uniform(.56,1.16)
+        splay = rng.uniform(-.016,.016)
+        def broken_ply(t):
+            angle = phase + t*4*pi
+            return loose_end(t*length) + Vector((
+                .0022*cos(angle) + splay*t*t,
+                .0022*sin(angle) + .009*t*t,
+                0))
+        yarn([broken_ply(k/6) for k in range(7)],width*.46,1,.88)
 threads = make_mesh("05 | Hem and fringe",verts,faces,[selvedge,raw])
 for face, index in zip(threads.data.polygons,thread_materials):
     face.material_index = index
