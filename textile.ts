@@ -2,19 +2,40 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ClothSimulation, clothShader } from './cloth-response';
 import { flagSurface, hoistPivot } from './flag-surface';
+import { makeSilkWeave } from './woven-silk';
 import { cameraPose, filmProgress, readingIndex, stops } from './flag-track';
 const clamp = THREE.MathUtils.clamp,
   lerp = THREE.MathUtils.lerp;
 const smooth = (a: number, b: number, x: number) =>
   THREE.MathUtils.smoothstep(x, a, b);
 
-// Fade thread frequencies past the pixel sampling limit as the lens moves.
+// Use the top yarn's direction for the elongated highlights at close range.
 function shadeSilk(
   material: THREE.MeshStandardMaterial,
   woven: boolean,
   cloth: ClothSimulation,
+  weave: THREE.DataTexture,
 ) {
   material.side = THREE.DoubleSide;
+  const brocade = material.name === 'Copper brocade';
+  const physical = material instanceof THREE.MeshPhysicalMaterial;
+  const useWeave = physical && woven;
+  if (physical) {
+    const clothRoughness = brocade ? 0.51 : 0.61;
+    material.roughness = woven ? clothRoughness : 0.68;
+    material.sheen = woven ? 0.78 : 0.51;
+    material.sheenRoughness = woven ? 0.57 : 0.66;
+    material.sheenColor
+      .copy(material.color)
+      .lerp(new THREE.Color(0.57, 0.37, 0.28), 0.28);
+    if (useWeave) {
+      material.anisotropy = brocade ? 0.49 : 0.37;
+      material.anisotropyRotation = Math.PI / 2;
+      if (brocade) material.color.multiplyScalar(0.84);
+    } else {
+      material.anisotropy = 0;
+    }
+  }
   material.onBeforeCompile = (shader) => {
     shader.uniforms.clothDelta = { value: cloth.delta };
     shader.uniforms.clothRotation = { value: cloth.rotation };
@@ -34,27 +55,45 @@ function shadeSilk(
         loomUV = uv;
         transformed += sampleCloth(clothDelta).xyz + rotateWithCloth(clothOffset, rotation) - clothOffset;`,
         );
-    if (material.name === 'Copper brocade')
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <color_fragment>',
-        '#include <color_fragment>\n if(!gl_FrontFacing) diffuseColor.rgb*=vec3(.41,.32,.44);',
-      );
-    shader.fragmentShader = 'varying vec2 loomUV;\n' + shader.fragmentShader;
-    if (woven)
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <color_fragment>',
-        `
-      #include <color_fragment>
-      vec2 yarn=loomUV*vec2(484.,381.), footprint=fwidth(yarn);
-      vec2 clarity=1.-smoothstep(vec2(.17),vec2(.58),footprint);
-      vec2 thread=cos(6.28318*yarn);
-      float twill=cos(6.28318*(yarn.x-yarn.y)/3.)*(1.-smoothstep(.4,1.8,max(footprint.x,footprint.y)));
-      diffuseColor.rgb*=1.+.135*thread.x*clarity.x+.10*thread.y*clarity.y+.075*twill;
-      diffuseColor.rgb*=1.+.033*cos(6.28318*(loomUV.x*86.+.18*sin(loomUV.y*13.)));`,
-      );
+    if (!useWeave) return;
+    shader.uniforms.silkWeave = { value: weave };
+    shader.fragmentShader =
+      'uniform sampler2D silkWeave; varying vec2 loomUV;\n' +
+      shader.fragmentShader
+        .replace(
+          '#include <color_fragment>',
+          `#include <color_fragment>
+        vec2 repeats = vec2(41., 33.);
+        vec4 silkSample = texture2D(silkWeave, loomUV * repeats);
+        vec2 yarnFootprint = fwidth(loomUV * repeats * 8.);
+        float yarnDetail = 1. - smoothstep(.28, .95, max(yarnFootprint.x, yarnFootprint.y));
+        float dyeVariation = 0.024 * sin(loomUV.x * 224. + 0.6 * sin(loomUV.y * 71.))
+                           + 0.018 * sin(loomUV.y * 192. - 0.7 * sin(loomUV.x * 29.));
+        diffuseColor.rgb *= ${brocade ? '0.66 + 0.65' : '0.78 + 0.44'} * silkSample.b + dyeVariation;
+        ${brocade ? 'if (!gl_FrontFacing) diffuseColor.rgb *= vec3(.48,.35,.45);' : ''}`,
+        )
+        .replace(
+          '#include <normal_fragment_maps>',
+          `#include <normal_fragment_maps>
+        vec2 silkSlope = (silkSample.rg * 2. - 1.) * (.15 + .18 * yarnDetail);
+        normal = normalize(normal + silkSlope.x * tbn[0] + silkSlope.y * tbn[1]);`,
+        )
+        .replace(
+          '#include <roughnessmap_fragment>',
+          `#include <roughnessmap_fragment>
+        roughnessFactor += (0.52 - silkSample.b) * 0.24;`,
+        )
+        .replace(
+          '#include <lights_physical_fragment>',
+          THREE.ShaderChunk.lights_physical_fragment.replace(
+            'vec2 anisotropyV = anisotropyVector;',
+            'vec2 yarnAxis = mix(vec2(1., 0.), vec2(0., 1.), silkSample.a);\n' +
+              'vec2 anisotropyV = mix(anisotropyVector * .64, normalize(yarnAxis) * length(anisotropyVector), yarnDetail);',
+          ),
+        );
   };
   material.customProgramCacheKey = () =>
-    woven ? (material.name === 'Copper brocade' ? 'crest' : 'twill') : 'yarn';
+    useWeave ? (brocade ? 'brocade' : 'twill') : 'yarn';
   material.defines = { ...material.defines, USE_UV: '' };
 }
 
@@ -80,6 +119,7 @@ export function mountTextile() {
   renderer.setClearColor(0x18101b, 0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.16;
+  const weave = makeSilkWeave(renderer.capabilities.getMaxAnisotropy());
   const scene = new THREE.Scene(),
     camera = new THREE.PerspectiveCamera(35, 1, 0.1, 65),
     clock = { value: 0 };
@@ -484,6 +524,16 @@ export function mountTextile() {
         releaseResources(gltf.scene);
         return;
       }
+      const yarnMaterials = new Set<THREE.MeshStandardMaterial>();
+      gltf.scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh && !obj.geometry.hasAttribute('uv'))
+          yarnMaterials.add(obj.material);
+      });
+      const wovenVariants = new Map<
+        THREE.MeshStandardMaterial,
+        THREE.MeshStandardMaterial
+      >();
+      const configured = new Set<THREE.MeshStandardMaterial>();
       let hasBinding = true;
       gltf.scene.traverse((obj) => {
         if (!(obj instanceof THREE.Mesh)) return;
@@ -494,7 +544,19 @@ export function mountTextile() {
         obj.geometry.translate(-hoistPivot.x, -hoistPivot.y, -hoistPivot.z);
         simulation.bindMesh(obj.geometry);
         obj.frustumCulled = false;
-        shadeSilk(obj.material, !!obj.geometry.attributes.uv, simulation);
+        const woven = obj.geometry.hasAttribute('uv');
+        if (woven && yarnMaterials.has(obj.material)) {
+          // A shared GLB material needs separate shaders on the woven crest
+          // and on the raised trim, since only one has cloth UVs.
+          const source = obj.material as THREE.MeshStandardMaterial;
+          if (!wovenVariants.has(source))
+            wovenVariants.set(source, source.clone());
+          obj.material = wovenVariants.get(source)!;
+        }
+        if (!configured.has(obj.material)) {
+          shadeSilk(obj.material, woven, simulation, weave);
+          configured.add(obj.material);
+        }
         const match = obj.name.match(/Mark_([1-5])/);
         if (match) {
           obj.material.emissive = new THREE.Color(0xc47934);
@@ -577,6 +639,7 @@ export function mountTextile() {
     activate();
     cloth.remove(simulation.collider);
     simulation.dispose();
+    weave.dispose();
     releaseResources(scene);
     renderer.dispose();
     surface.remove();
